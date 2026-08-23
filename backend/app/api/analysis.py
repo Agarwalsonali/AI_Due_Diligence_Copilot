@@ -5,7 +5,7 @@ from app.database.database import get_db
 from app.database.models import User, Analysis
 from app.core.security import get_current_user
 from app.database.schemas import AnalysisRequest, ComparisonRequest
-from app.rag.retriever import HybridRetriever
+from app.rag.hybrid_retriever import HybridRetriever
 from app.rag.vector_store import get_vector_store
 from app.rag.embeddings import get_embedding_service
 from app.rag.reranker import get_reranker
@@ -21,7 +21,7 @@ router = APIRouter(prefix="/api/analysis", tags=["analysis"])
 
 async def _get_context(company_id: int, query: str, db: AsyncSession) -> list:
     retriever = HybridRetriever(get_vector_store(), get_embedding_service())
-    chunks = await retriever.retrieve(query, company_id, db)
+    chunks = await retriever.retrieve(query=query, db=db, company_id=company_id)
     reranker = get_reranker()
     return reranker.rerank(query, chunks)
 

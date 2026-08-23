@@ -1,79 +1,155 @@
-from app.rag.vector_store import VectorStore, get_vector_store
-from app.rag.embeddings import EmbeddingService, get_embedding_service
+"""RAG retrieval orchestrator.
+
+Coordinates the full retrieval pipeline:
+1. Query rewriting (for follow-up questions)
+2. Hybrid retrieval (vector + BM25)
+3. Reranking
+4. Context building
+5. Relevance threshold check
+
+This is the main entry point for the RAG system.
+"""
 from typing import List, Dict, Any, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.database.models import DocumentChunk
+from app.rag.vector_store import VectorStore, get_vector_store
+from app.rag.embeddings import EmbeddingService, get_embedding_service
+from app.rag.hybrid_retriever import HybridRetriever
+from app.rag.reranker import get_reranker
+from app.rag.context import build_source_list, estimate_confidence
+from app.rag.query import rewrite_query
+from app.database.models import DocumentChunk, Company, Document
+from app.core.logging import get_logger
 
-class HybridRetriever:
-    def __init__(self, vector_store: VectorStore, embedding_service: EmbeddingService):
-        self.vector_store = vector_store
-        self.embedding_service = embedding_service
-        self.bm25_cache = {}
+logger = get_logger("retriever")
 
-    async def retrieve(
-        self, 
-        query: str, 
-        company_id: int, 
-        db: AsyncSession,
-        document_id: Optional[int] = None, 
-        top_k: int = 20
-    ) -> List[Dict[str, Any]]:
-        
-        query_vector = await self.embedding_service.embed_query(query)
-        vector_results = self.vector_store.search(query_vector, company_id, document_id, top_k)
-        
-        stmt = select(DocumentChunk).where(DocumentChunk.company_id == company_id)
-        if document_id:
-            stmt = stmt.where(DocumentChunk.document_id == document_id)
-            
-        result = await db.execute(stmt)
-        chunks = result.scalars().all()
-        
-        if not chunks:
-            return vector_results
-            
-        from rank_bm25 import BM25Okapi
-        tokenized_corpus = [chunk.text.split() for chunk in chunks]
-        bm25 = BM25Okapi(tokenized_corpus)
-        bm25_scores = bm25.get_scores(query.split())
-        
-        bm25_results = []
-        for chunk, score in zip(chunks, bm25_scores):
-            if score > 0:
-                bm25_results.append({
-                    'payload': {
-                        'text': chunk.text,
-                        'company_id': chunk.company_id,
-                        'document_id': chunk.document_id,
-                        'page_number': chunk.page_number,
-                        'section': chunk.section
-                    },
-                    'score': score
-                })
-        
-        bm25_results.sort(key=lambda x: x['score'], reverse=True)
-        bm25_results = bm25_results[:top_k]
-        
-        fused_scores = {}
-        k = 60
-        
-        for rank, res in enumerate(vector_results):
-            doc_id = res['payload'].get('text', '')[:50]
-            fused_scores[doc_id] = fused_scores.get(doc_id, 0) + 1 / (k + rank)
-            
-        for rank, res in enumerate(bm25_results):
-            doc_id = res['payload'].get('text', '')[:50]
-            fused_scores[doc_id] = fused_scores.get(doc_id, 0) + 1 / (k + rank)
-            
-        merged_results = []
-        seen = set()
-        for res in vector_results + bm25_results:
-            doc_id = res['payload'].get('text', '')[:50]
-            if doc_id not in seen:
-                seen.add(doc_id)
-                res['score'] = fused_scores[doc_id]
-                merged_results.append(res)
-                
-        merged_results.sort(key=lambda x: x['score'], reverse=True)
-        return merged_results[:top_k]
+# Minimum relevance threshold — below this, we refuse to answer
+RELEVANCE_THRESHOLD = 0.15
+
+
+class RetrievalResult:
+    """Structured result from the RAG retrieval pipeline."""
+    def __init__(
+        self,
+        chunks: List[Dict[str, Any]],
+        sources: List[Dict[str, Any]],
+        confidence: float,
+        sufficient: bool,
+        rewritten_query: Optional[str] = None,
+    ):
+        self.chunks = chunks
+        self.sources = sources
+        self.confidence = confidence
+        self.sufficient = sufficient
+        self.rewritten_query = rewritten_query
+
+
+async def retrieve_for_question(
+    question: str,
+    db: AsyncSession,
+    company_id: Optional[int] = None,
+    document_id: Optional[int] = None,
+    conversation_history: Optional[List[Dict[str, str]]] = None,
+    company_name: Optional[str] = None,
+    top_k: int = 20,
+    rerank_top_k: int = 8,
+) -> RetrievalResult:
+    """Run the full retrieval pipeline for a user question.
+
+    Args:
+        question: The user's question.
+        db: Database session.
+        company_id: Optional company filter.
+        document_id: Optional document filter.
+        conversation_history: Previous messages for query rewriting.
+        company_name: Company name for query rewriting context.
+        top_k: Number of candidates to retrieve.
+        rerank_top_k: Number of candidates to keep after reranking.
+
+    Returns:
+        RetrievalResult with chunks, sources, confidence, and sufficiency flag.
+    """
+    # 1. Query rewriting for follow-up questions
+    rewritten = await rewrite_query(
+        current_question=question,
+        conversation_history=conversation_history or [],
+        company_name=company_name,
+    )
+
+    # 2. Hybrid retrieval (vector + BM25)
+    vector_store = get_vector_store()
+    embedding_service = get_embedding_service()
+    hybrid = HybridRetriever(vector_store, embedding_service)
+
+    candidates = await hybrid.retrieve(
+        query=rewritten,
+        db=db,
+        company_id=company_id,
+        document_id=document_id,
+        top_k=top_k,
+    )
+
+    logger.info(
+        "retrieval_candidates",
+        query=question[:100],
+        rewritten=rewritten[:100] if rewritten != question else "(unchanged)",
+        candidate_count=len(candidates),
+    )
+
+    # 3. Reranking
+    if not candidates:
+        return RetrievalResult(
+            chunks=[],
+            sources=[],
+            confidence=0.0,
+            sufficient=False,
+            rewritten_query=rewritten if rewritten != question else None,
+        )
+
+    reranker = get_reranker()
+    ranked = reranker.rerank(rewritten, candidates, top_k=rerank_top_k)
+
+    # 4. Relevance threshold check
+    top_score = ranked[0].get("score", 0) if ranked else 0
+    sufficient = top_score >= RELEVANCE_THRESHOLD
+
+    if not sufficient:
+        logger.info(
+            "relevance_insufficient",
+            top_score=round(top_score, 4),
+            threshold=RELEVANCE_THRESHOLD,
+        )
+        return RetrievalResult(
+            chunks=ranked,
+            sources=[],
+            confidence=round(top_score, 2),
+            sufficient=False,
+            rewritten_query=rewritten if rewritten != question else None,
+        )
+
+    # 5. Build sources and confidence
+    sources = build_source_list(ranked)
+    confidence = estimate_confidence(ranked, answer_length=0)  # Will be refined after generation
+
+    logger.info(
+        "retrieval_complete",
+        sources_count=len(sources),
+        confidence=confidence,
+        top_score=round(top_score, 4),
+    )
+
+    return RetrievalResult(
+        chunks=ranked,
+        sources=sources,
+        confidence=confidence,
+        sufficient=True,
+        rewritten_query=rewritten if rewritten != question else None,
+    )
+
+
+async def get_company_name(db: AsyncSession, company_id: Optional[int]) -> Optional[str]:
+    """Fetch company name by ID."""
+    if company_id is None:
+        return None
+    company = await db.get(Company, company_id)
+    return company.name if company else None

@@ -90,23 +90,28 @@ class DocumentListResponse(BaseModel):
 
 # Chat
 class SourceCitation(BaseModel):
+    source_id: Optional[str] = None
     document_id: int
     document_title: str
     page_number: int
     section: Optional[str] = None
-    text_excerpt: str
+    excerpt: str
+    score: Optional[float] = None
     
     model_config = ConfigDict(from_attributes=True)
 
 class ChatRequest(BaseModel):
     message: str
     company_id: Optional[int] = None
+    document_id: Optional[int] = None
     session_id: Optional[int] = None
 
 class ChatResponse(BaseModel):
-    message: str
-    sources: Optional[List[SourceCitation]] = None
+    answer: str
     session_id: int
+    confidence: float = 0.0
+    sources: Optional[List[SourceCitation]] = None
+    sufficient_evidence: bool = True
     
     model_config = ConfigDict(from_attributes=True)
 
@@ -126,7 +131,7 @@ class ChatMessageResponse(BaseModel):
     session_id: int
     role: str
     content: str
-    sources: Optional[List[SourceCitation]] = None
+    sources: Optional[Any] = None  # JSON field — list of source dicts or None
     created_at: datetime
     
     model_config = ConfigDict(from_attributes=True)
