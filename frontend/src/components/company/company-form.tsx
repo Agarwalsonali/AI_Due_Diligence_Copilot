@@ -16,14 +16,14 @@ interface CompanyFormProps {
 }
 
 const INDUSTRIES = [
-  'Technology', 'Healthcare', 'Finance', 'Energy', 'Consumer', 
+  'Technology', 'Healthcare', 'Finance', 'Energy', 'Consumer',
   'Industrial', 'Real Estate', 'Utilities', 'Materials', 'Communications'
 ];
 
 export function CompanyForm({ onSuccess }: CompanyFormProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     name: '',
     ticker: '',
@@ -36,7 +36,7 @@ export function CompanyForm({ onSuccess }: CompanyFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name) return toast.error('Company name is required');
-    
+
     setLoading(true);
     try {
       await companyAPI.create(formData);
@@ -44,8 +44,9 @@ export function CompanyForm({ onSuccess }: CompanyFormProps) {
       setOpen(false);
       onSuccess?.();
       setFormData({ name: '', ticker: '', industry: '', sector: '', description: '', website: '' });
-    } catch (error) {
-      toast.error('Failed to create company');
+    } catch (error: any) {
+      const msg = error?.response?.data?.detail || 'Failed to create company';
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -54,11 +55,11 @@ export function CompanyForm({ onSuccess }: CompanyFormProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+        <Button>
           <Plus className="w-4 h-4 mr-2" /> Add Company
         </Button>
       </DialogTrigger>
-      <DialogContent className="bg-slate-900 border-slate-800 text-slate-100 sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Add New Company</DialogTitle>
         </DialogHeader>
@@ -66,38 +67,26 @@ export function CompanyForm({ onSuccess }: CompanyFormProps) {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Name *</Label>
-              <Input 
-                id="name" 
-                value={formData.name}
+              <Input id="name" value={formData.name}
                 onChange={e => setFormData({ ...formData, name: e.target.value })}
-                className="bg-slate-950 border-slate-800 focus-visible:ring-blue-500" 
-                placeholder="Apple Inc." 
-                required 
-              />
+                placeholder="Apple Inc." required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="ticker">Ticker</Label>
-              <Input 
-                id="ticker" 
-                value={formData.ticker}
+              <Input id="ticker" value={formData.ticker}
                 onChange={e => setFormData({ ...formData, ticker: e.target.value })}
-                className="bg-slate-950 border-slate-800 focus-visible:ring-blue-500 uppercase" 
-                placeholder="AAPL" 
-              />
+                className="uppercase" placeholder="AAPL" />
             </div>
           </div>
-          
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Industry</Label>
-              <Select 
-                value={formData.industry} 
-                onValueChange={val => setFormData({ ...formData, industry: val, sector: val })}
-              >
-                <SelectTrigger className="bg-slate-950 border-slate-800">
+              <Select value={formData.industry}
+                onValueChange={val => setFormData({ ...formData, industry: val, sector: val })}>
+                <SelectTrigger>
                   <SelectValue placeholder="Select industry" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-slate-800">
+                <SelectContent>
                   {INDUSTRIES.map(ind => (
                     <SelectItem key={ind} value={ind}>{ind}</SelectItem>
                   ))}
@@ -106,34 +95,23 @@ export function CompanyForm({ onSuccess }: CompanyFormProps) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="website">Website</Label>
-              <Input 
-                id="website" 
-                type="url"
-                value={formData.website}
+              <Input id="website" type="url" value={formData.website}
                 onChange={e => setFormData({ ...formData, website: e.target.value })}
-                className="bg-slate-950 border-slate-800 focus-visible:ring-blue-500" 
-                placeholder="https://example.com" 
-              />
+                placeholder="https://example.com" />
             </div>
           </div>
-          
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
-            <Textarea 
-              id="description" 
-              value={formData.description}
+            <Textarea id="description" value={formData.description}
               onChange={e => setFormData({ ...formData, description: e.target.value })}
-              className="bg-slate-950 border-slate-800 focus-visible:ring-blue-500 min-h-[100px]" 
-              placeholder="Brief description of the company..." 
-            />
+              className="min-h-[80px]" placeholder="Brief description of the company..." />
           </div>
-          
-          <div className="flex justify-end pt-4">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="mr-2 border-slate-700 hover:bg-slate-800">
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700">
-              {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+            <Button type="submit" disabled={loading}>
+              {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {loading ? 'Saving...' : 'Add Company'}
             </Button>
           </div>

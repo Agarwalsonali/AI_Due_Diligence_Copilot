@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts/auth-context';
@@ -35,7 +35,8 @@ export default function RegisterPage() {
       toast.success('Account created successfully');
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.message || 'Failed to register');
+      const msg = err?.response?.data?.detail || err?.message || 'Failed to register';
+      setError(msg);
       toast.error('Registration failed');
     } finally {
       setLoading(false);
@@ -43,7 +44,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <Card className="border-muted bg-card/60 backdrop-blur-xl shadow-2xl animate-slide-up">
+    <Card className="border-border shadow-2xl animate-slide-up w-full max-w-md mx-auto">
       <CardHeader className="space-y-1 text-center pb-8">
         <div className="flex justify-center mb-4">
           <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center border border-primary/20">
@@ -67,63 +68,37 @@ export default function RegisterPage() {
             <Label htmlFor="name">Full Name</Label>
             <div className="relative">
               <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input 
-                id="name" 
-                placeholder="John Doe" 
-                className="pl-10 bg-background/50"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
+              <Input id="name" placeholder="John Doe" className="pl-10" value={name}
+                onChange={(e) => setName(e.target.value)} required />
             </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input 
-                id="email" 
-                type="email" 
-                placeholder="m@example.com" 
-                className="pl-10 bg-background/50"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+              <Input id="email" type="email" placeholder="m@example.com" className="pl-10" value={email}
+                onChange={(e) => setEmail(e.target.value)} required />
             </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <div className="relative">
               <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input 
-                id="password" 
-                type="password" 
-                className="pl-10 bg-background/50"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={8}
-              />
+              <Input id="password" type="password" className="pl-10" value={password}
+                onChange={(e) => setPassword(e.target.value)} required minLength={8} />
             </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Confirm Password</Label>
             <div className="relative">
               <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input 
-                id="confirmPassword" 
-                type="password" 
-                className="pl-10 bg-background/50"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
+              <Input id="confirmPassword" type="password" className="pl-10" value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)} required />
             </div>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4 pt-4">
-          <Button type="submit" className="w-full shadow-lg" disabled={loading}>
+          <Button type="submit" className="w-full" disabled={loading}>
             {loading ? 'Creating account...' : 'Create account'}
           </Button>
           <div className="text-center text-sm text-muted-foreground">

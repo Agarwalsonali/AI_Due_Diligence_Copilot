@@ -1,22 +1,31 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Trash2, FileText, Activity, AlertTriangle, Lightbulb, MessageSquare, Download } from 'lucide-react';
+import {
+  ArrowLeft, Trash2, FileText, Activity, AlertTriangle,
+  Lightbulb, MessageSquare, TrendingUp, RefreshCw
+} from 'lucide-react';
 import Link from 'next/link';
-import { companyAPI, analysisAPI, reportAPI } from '@/lib/api';
-import { Company, FinancialMetric, FinancialRatios } from '@/types';
+import { companyAPI, analysisAPI } from '@/lib/api';
+import { Company, FinancialMetricResponse, FinancialRatio } from '@/types';
 import { toast } from 'sonner';
 
 import { MetricsCards } from '@/components/company/metrics-cards';
 import { UploadDialog } from '@/components/document/upload-dialog';
 import { DocumentList } from '@/components/document/document-list';
 import { ChatInterface } from '@/components/chat/chat-interface';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { RiskCard } from '@/components/analysis/risk-card';
+import { OpportunityCard } from '@/components/analysis/opportunity-card';
+import {
+  BarChart, Bar, LineChart, Line, XAxis, YAxis,
+  CartesianGrid, Tooltip, ResponsiveContainer, Legend
+} from 'recharts';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CompanyDetailPage() {
   const params = useParams();
@@ -24,35 +33,91 @@ export default function CompanyDetailPage() {
   const id = params.id as string;
 
   const [company, setCompany] = useState<Company | null>(null);
-  const [financials, setFinancials] = useState<{ metrics: FinancialMetric[], ratios: FinancialRatios } | null>(null);
+  const [metrics, setMetrics] = useState<FinancialMetricResponse[]>([]);
+  const [ratios, setRatios] = useState<FinancialRatio[]>([]);
   const [risks, setRisks] = useState<any[]>([]);
   const [opportunities, setOpportunities] = useState<any[]>([]);
+  const [health, setHealth] = useState<any>(null);
+  const [summary, setSummary] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [analyzing, setAnalyzing] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [compData, finData, riskData, oppData] = await Promise.all([
-          companyAPI.get(id),
-          analysisAPI.financials(id).catch(() => null),
-          analysisAPI.risks(id).catch(() => []),
-          analysisAPI.opportunities(id).catch(() => [])
-        ]);
-        setCompany(compData);
-        setFinancials(finData);
-        setRisks(riskData);
-        setOpportunities(oppData);
-      } catch (error) {
-        toast.error('Failed to load company details');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+  const fetchData = useCallback(async () => {
+    try {
+      const comp = await companyAPI.get(id);
+      setCompany(comp);
+    } catch (error) {
+      toast.error('Failed to load company');
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
 
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  const loadAnalysis = useCallback(async () => {
+    try {
+      const data = await companyAPI.analysis(id);
+      if (data) {
+        if (data.financials) {
+          setMetrics(data.financials.metrics || []);
+          setRatios(data.financials.ratios || []);
+        }
+        if (data.risks) setRisks(data.risks.risks || []);
+        if (data.opportunities) setOpportunities(data.opportunities.opportunities || []);
+        if (data.financial_health) setHealth(data.financial_health);
+        if (data.summary) setSummary(data.summary);
+      }
+    } catch (e) {
+      // Analysis might not exist yet — that's fine
+    }
+  }, [id]);
+
+  useEffect(() => {
+    if (company) loadAnalysis();
+  }, [company, loadAnalysis]);
+
+  const runAnalysis = async (type: string) => {
+    setAnalyzing(prev => ({ ...prev, [type]: true }));
+    try {
+      switch (type) {
+        case 'financials': {
+          const data = await analysisAPI.financials(parseInt(id));
+          setMetrics(data.metrics || []);
+          setRatios(data.ratios || []);
+          break;
+        }
+        case 'health': {
+          const data = await analysisAPI.health(parseInt(id));
+          setHealth(data);
+          break;
+        }
+        case 'risks': {
+          const data = await analysisAPI.risks(parseInt(id));
+          setRisks(data.risks || []);
+          break;
+        }
+        case 'opportunities': {
+          const data = await analysisAPI.opportunities(parseInt(id));
+          setOpportunities(data.opportunities || []);
+          break;
+        }
+        case 'summary': {
+          const data = await analysisAPI.summary(parseInt(id));
+          setSummary(data);
+          break;
+        }
+      }
+      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} analysis complete`);
+    } catch (e: any) {
+      toast.error(e?.response?.data?.detail || `Failed to run ${type} analysis`);
+    } finally {
+      setAnalyzing(prev => ({ ...prev, [type]: false }));
+    }
+  };
+
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this company?')) return;
+    if (!confirm('Delete this company and all its documents?')) return;
     try {
       await companyAPI.delete(id);
       toast.success('Company deleted');
@@ -62,232 +127,381 @@ export default function CompanyDetailPage() {
     }
   };
 
-  const generateReport = async () => {
-    toast.info('Generating report...');
-    try {
-      const res = await reportAPI.generate(id);
-      toast.success('Report generated successfully');
-      // trigger download
-      window.open(res.url, '_blank');
-    } catch (e) {
-      toast.error('Failed to generate report');
-    }
-  };
+  // Build chart data from metrics
+  const chartData = React.useMemo(() => {
+    if (!metrics.length) return [];
+    const byYear: Record<number, any> = {};
+    metrics.forEach(m => {
+      if (m.fiscalYear) {
+        if (!byYear[m.fiscalYear]) byYear[m.fiscalYear] = { year: m.fiscalYear };
+        byYear[m.fiscalYear][m.metricName] = m.metricValue;
+      }
+    });
+    return Object.values(byYear).sort((a: any, b: any) => a.year - b.year);
+  }, [metrics]);
 
-  if (loading) return <div className="p-8 text-center text-slate-400">Loading dashboard...</div>;
-  if (!company) return <div className="p-8 text-center text-red-400">Company not found</div>;
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-12 w-1/3" />
+        <div className="grid grid-cols-3 gap-4">
+          {[1, 2, 3].map(i => <Skeleton key={i} className="h-24" />)}
+        </div>
+      </div>
+    );
+  }
+
+  if (!company) {
+    return <div className="text-center py-12 text-destructive">Company not found</div>;
+  }
 
   return (
-    <div className="flex flex-col h-full bg-slate-950">
-      <div className="p-6 border-b border-slate-800 bg-slate-900/50 sticky top-0 z-10 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div className="flex items-center gap-4">
-            <Link href="/companies">
-              <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white hover:bg-slate-800">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
-            <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold text-white">{company.name}</h1>
-                {company.ticker && (
-                  <Badge variant="outline" className="bg-blue-950/40 text-blue-400 border-blue-800">
-                    {company.ticker}
-                  </Badge>
-                )}
-              </div>
-              <p className="text-sm text-slate-400 mt-1">{company.industry} • {company.sector}</p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex items-center gap-4">
+          <Link href="/companies">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+          </Link>
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold">{company.name}</h1>
+              {company.ticker && (
+                <Badge variant="outline" className="font-mono">{company.ticker}</Badge>
+              )}
             </div>
+            <p className="text-sm text-muted-foreground mt-1">
+              {company.industry}{company.sector ? ` • ${company.sector}` : ''}
+            </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={handleDelete} className="border-red-900/50 text-red-500 hover:bg-red-950 hover:text-red-400">
-              <Trash2 className="w-4 h-4 mr-2" /> Delete
-            </Button>
-            <Button onClick={generateReport} className="bg-blue-600 hover:bg-blue-700">
-              <Download className="w-4 h-4 mr-2" /> Generate Report
-            </Button>
-          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleDelete} className="text-destructive hover:text-destructive">
+            <Trash2 className="w-4 h-4 mr-1" /> Delete
+          </Button>
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto p-6">
-        <div className="max-w-7xl mx-auto">
-          <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="bg-slate-900 border border-slate-800 mb-6 p-1">
-              <TabsTrigger value="overview" className="data-[state=active]:bg-slate-800 data-[state=active]:text-white text-slate-400"><Activity className="w-4 h-4 mr-2"/>Overview</TabsTrigger>
-              <TabsTrigger value="documents" className="data-[state=active]:bg-slate-800 data-[state=active]:text-white text-slate-400"><FileText className="w-4 h-4 mr-2"/>Documents</TabsTrigger>
-              <TabsTrigger value="financials" className="data-[state=active]:bg-slate-800 data-[state=active]:text-white text-slate-400"><Activity className="w-4 h-4 mr-2"/>Financials</TabsTrigger>
-              <TabsTrigger value="risks" className="data-[state=active]:bg-slate-800 data-[state=active]:text-white text-slate-400"><AlertTriangle className="w-4 h-4 mr-2"/>Risks</TabsTrigger>
-              <TabsTrigger value="opportunities" className="data-[state=active]:bg-slate-800 data-[state=active]:text-white text-slate-400"><Lightbulb className="w-4 h-4 mr-2"/>Opportunities</TabsTrigger>
-              <TabsTrigger value="chat" className="data-[state=active]:bg-slate-800 data-[state=active]:text-white text-slate-400"><MessageSquare className="w-4 h-4 mr-2"/>Chat</TabsTrigger>
-            </TabsList>
+      {/* Tabs */}
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="mb-6">
+          <TabsTrigger value="overview"><Activity className="w-4 h-4 mr-1.5" />Overview</TabsTrigger>
+          <TabsTrigger value="documents"><FileText className="w-4 h-4 mr-1.5" />Documents</TabsTrigger>
+          <TabsTrigger value="financials"><TrendingUp className="w-4 h-4 mr-1.5" />Financials</TabsTrigger>
+          <TabsTrigger value="risks"><AlertTriangle className="w-4 h-4 mr-1.5" />Risks</TabsTrigger>
+          <TabsTrigger value="opportunities"><Lightbulb className="w-4 h-4 mr-1.5" />Opportunities</TabsTrigger>
+          <TabsTrigger value="chat"><MessageSquare className="w-4 h-4 mr-1.5" />Chat</TabsTrigger>
+        </TabsList>
 
-            <TabsContent value="overview" className="space-y-6">
-              <MetricsCards metrics={financials?.metrics} ratios={financials?.ratios} />
-              
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Card className="col-span-2 bg-slate-900 border-slate-800">
-                  <CardHeader>
-                    <CardTitle className="text-white">AI Assessment Summary</CardTitle>
-                    <CardDescription className="text-slate-400">Generated from available documentation</CardDescription>
-                  </CardHeader>
-                  <CardContent className="text-slate-300 leading-relaxed space-y-4">
-                    <p>{company.description || 'No description available.'}</p>
-                    <div className="flex gap-2 mt-4">
-                      <Button variant="outline" className="border-blue-800 text-blue-400 hover:bg-blue-950">Generate New Summary</Button>
-                      <Button variant="outline" className="border-slate-800 text-slate-300 hover:bg-slate-800">View Full Assessment</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card className="bg-slate-900 border-slate-800">
-                  <CardHeader>
-                    <CardTitle className="text-white">Recent Documents</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <DocumentList companyId={id} limit={5} hideActions />
-                    <Button variant="link" className="w-full mt-4 text-blue-400" onClick={() => document.querySelector<HTMLButtonElement>('[value="documents"]')?.click()}>
-                      View All Documents
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
+        {/* ── Overview ─────────────────────────────────────────────────────── */}
+        <TabsContent value="overview" className="space-y-6">
+          <MetricsCards metrics={metrics} ratios={ratios} />
 
-            <TabsContent value="documents">
-              <Card className="bg-slate-900 border-slate-800">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <div>
-                    <CardTitle className="text-white">Documents Repository</CardTitle>
-                    <CardDescription className="text-slate-400">Manage 10-Ks, earnings reports, and other filings</CardDescription>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Card className="lg:col-span-2">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Executive Summary</CardTitle>
+                  <CardDescription>AI-generated analysis overview</CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => runAnalysis('summary')} disabled={analyzing.summary}>
+                  {analyzing.summary ? <RefreshCw className="w-4 h-4 animate-spin mr-1" /> : null}
+                  {summary ? 'Refresh' : 'Generate'}
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {summary ? (
+                  <div className="space-y-4">
+                    {summary.executiveSummary && (
+                      <div className="prose prose-sm max-w-none text-muted-foreground">
+                        <p>{summary.executiveSummary}</p>
+                      </div>
+                    )}
+                    {summary.keyFindings && summary.keyFindings.length > 0 && (
+                      <div>
+                        <h4 className="text-sm font-semibold mb-2">Key Findings</h4>
+                        <ul className="space-y-1">
+                          {summary.keyFindings.map((f: string, i: number) => (
+                            <li key={i} className="text-sm text-muted-foreground flex gap-2">
+                              <span className="text-primary">•</span>{f}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
-                  <UploadDialog companyId={id} />
-                </CardHeader>
-                <CardContent>
-                  <DocumentList companyId={id} />
+                ) : (
+                  <p className="text-muted-foreground text-sm">
+                    No summary available. Upload documents and click Generate to create one.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Financial Health</CardTitle>
+                <CardDescription>Overall assessment</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {health ? (
+                  <div className="space-y-4">
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-primary">{health.overall || 'N/A'}</div>
+                      <div className="text-xs text-muted-foreground mt-1">Overall Rating</div>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      {['growth', 'profitability', 'liquidity', 'leverage', 'cashFlow'].map(dim => (
+                        <div key={dim} className="flex justify-between">
+                          <span className="text-muted-foreground capitalize">{dim}</span>
+                          <span className="font-medium">{health[dim] || 'N/A'}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-6">
+                    <p className="text-muted-foreground text-sm mb-3">Run analysis to see health assessment</p>
+                    <Button variant="outline" size="sm" onClick={() => runAnalysis('health')} disabled={analyzing.health}>
+                      {analyzing.health ? <RefreshCw className="w-4 h-4 animate-spin mr-1" /> : null}
+                      Run Analysis
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Quick Risk/Opportunity Overview */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-base">Top Risks</CardTitle>
+                  <CardDescription>{risks.length} identified</CardDescription>
+                </div>
+                {risks.length === 0 && (
+                  <Button variant="outline" size="sm" onClick={() => runAnalysis('risks')} disabled={analyzing.risks}>
+                    {analyzing.risks ? <RefreshCw className="w-4 h-4 animate-spin mr-1" /> : null}
+                    Analyze
+                  </Button>
+                )}
+              </CardHeader>
+              <CardContent>
+                {risks.length > 0 ? (
+                  <div className="space-y-3">
+                    {risks.slice(0, 3).map((risk: any, i: number) => (
+                      <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                        <Badge variant="outline" className={`text-xs shrink-0 ${
+                          risk.severity === 'CRITICAL' ? 'border-destructive text-destructive' :
+                          risk.severity === 'HIGH' ? 'border-orange-500 text-orange-500' :
+                          'border-muted-foreground text-muted-foreground'
+                        }`}>{risk.severity}</Badge>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">{risk.title}</p>
+                          <p className="text-xs text-muted-foreground truncate">{risk.category}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-sm text-center py-4">No risks analyzed yet</p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-base">Growth Opportunities</CardTitle>
+                  <CardDescription>{opportunities.length} identified</CardDescription>
+                </div>
+                {opportunities.length === 0 && (
+                  <Button variant="outline" size="sm" onClick={() => runAnalysis('opportunities')} disabled={analyzing.opportunities}>
+                    {analyzing.opportunities ? <RefreshCw className="w-4 h-4 animate-spin mr-1" /> : null}
+                    Analyze
+                  </Button>
+                )}
+              </CardHeader>
+              <CardContent>
+                {opportunities.length > 0 ? (
+                  <div className="space-y-3">
+                    {opportunities.slice(0, 3).map((opp: any, i: number) => (
+                      <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                        <Badge variant="outline" className="text-xs shrink-0 border-emerald-500/50 text-emerald-600 dark:text-emerald-400">{opp.category}</Badge>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">{opp.title}</p>
+                          <p className="text-xs text-muted-foreground truncate">{opp.description?.substring(0, 80)}...</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-sm text-center py-4">No opportunities analyzed yet</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* ── Documents ────────────────────────────────────────────────────── */}
+        <TabsContent value="documents">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Documents</CardTitle>
+                <CardDescription>Upload and manage financial documents</CardDescription>
+              </div>
+              <UploadDialog companyId={id} onSuccess={fetchData} />
+            </CardHeader>
+            <CardContent>
+              <DocumentList companyId={id} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ── Financials ───────────────────────────────────────────────────── */}
+        <TabsContent value="financials" className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold">Financial Analysis</h2>
+            <Button variant="outline" size="sm" onClick={() => runAnalysis('financials')} disabled={analyzing.financials}>
+              {analyzing.financials ? <RefreshCw className="w-4 h-4 animate-spin mr-1" /> : null}
+              {metrics.length > 0 ? 'Re-analyze' : 'Run Analysis'}
+            </Button>
+          </div>
+
+          <MetricsCards metrics={metrics} ratios={ratios} />
+
+          {chartData.length > 0 && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader><CardTitle className="text-base">Revenue & Net Income</CardTitle></CardHeader>
+                <CardContent className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                      <XAxis dataKey="year" className="text-xs" />
+                      <YAxis className="text-xs" tickFormatter={(v: number) => v >= 1e9 ? `$${(v / 1e9).toFixed(1)}B` : v >= 1e6 ? `$${(v / 1e6).toFixed(1)}M` : `$${v}`} />
+                      <Tooltip formatter={(v: number) => v >= 1e9 ? `$${(v / 1e9).toFixed(2)}B` : v >= 1e6 ? `$${(v / 1e6).toFixed(1)}M` : `$${v.toLocaleString()}`} />
+                      <Legend />
+                      <Bar dataKey="revenue" name="Revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="net_income" name="Net Income" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </CardContent>
               </Card>
-            </TabsContent>
 
-            <TabsContent value="financials" className="space-y-6">
-              <MetricsCards metrics={financials?.metrics} ratios={financials?.ratios} />
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="bg-slate-900 border-slate-800">
-                  <CardHeader>
-                    <CardTitle className="text-white">Revenue & Income</CardTitle>
-                  </CardHeader>
-                  <CardContent className="h-[300px]">
-                    {financials?.metrics ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={financials.metrics.slice().reverse()}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                          <XAxis dataKey="year" stroke="#64748b" />
-                          <YAxis stroke="#64748b" />
-                          <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b' }} />
-                          <Legend />
-                          <Bar dataKey="revenue" fill="#3b82f6" name="Revenue" />
-                          <Bar dataKey="netIncome" fill="#10b981" name="Net Income" />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="h-full flex items-center justify-center text-slate-500">No data available</div>
-                    )}
-                  </CardContent>
-                </Card>
-                
-                <Card className="bg-slate-900 border-slate-800">
-                  <CardHeader>
-                    <CardTitle className="text-white">Debt vs Cash</CardTitle>
-                  </CardHeader>
-                  <CardContent className="h-[300px]">
-                    {financials?.metrics ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={financials.metrics.slice().reverse()}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                          <XAxis dataKey="year" stroke="#64748b" />
-                          <YAxis stroke="#64748b" />
-                          <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b' }} />
-                          <Legend />
-                          <Line type="monotone" dataKey="debt" stroke="#ef4444" name="Total Debt" />
-                          <Line type="monotone" dataKey="cash" stroke="#06b6d4" name="Cash & Equivalents" />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="h-full flex items-center justify-center text-slate-500">No data available</div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
+              <Card>
+                <CardHeader><CardTitle className="text-base">Debt vs Cash</CardTitle></CardHeader>
+                <CardContent className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                      <XAxis dataKey="year" className="text-xs" />
+                      <YAxis className="text-xs" tickFormatter={(v: number) => v >= 1e9 ? `$${(v / 1e9).toFixed(1)}B` : v >= 1e6 ? `$${(v / 1e6).toFixed(1)}M` : `$${v}`} />
+                      <Tooltip formatter={(v: number) => v >= 1e9 ? `$${(v / 1e9).toFixed(2)}B` : v >= 1e6 ? `$${(v / 1e6).toFixed(1)}M` : `$${v.toLocaleString()}`} />
+                      <Legend />
+                      <Line type="monotone" dataKey="debt" name="Total Debt" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 3 }} />
+                      <Line type="monotone" dataKey="cash" name="Cash" stroke="hsl(var(--info))" strokeWidth={2} dot={{ r: 3 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
-            <TabsContent value="risks">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold text-white">Risk Analysis</h2>
-                <Button variant="outline" className="border-slate-700 bg-slate-900 text-slate-300">
-                  <RefreshCw className="w-4 h-4 mr-2" /> Re-analyze Risks
-                </Button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {risks.length > 0 ? risks.map((risk, idx) => (
-                  <Card key={idx} className="bg-slate-900 border-slate-800 border-l-4" style={{ borderLeftColor: risk.severity === 'CRITICAL' ? '#ef4444' : risk.severity === 'HIGH' ? '#f97316' : risk.severity === 'MEDIUM' ? '#eab308' : '#22c55e' }}>
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between">
-                        <Badge variant="outline" className="text-slate-300 border-slate-700">{risk.category}</Badge>
-                        <Badge variant="outline" className={risk.severity === 'CRITICAL' ? 'bg-red-950 text-red-500 border-red-900' : 'bg-slate-800 text-slate-400'}>
-                          {risk.severity}
-                        </Badge>
+          {/* Ratios Table */}
+          {Array.isArray(ratios) && ratios.length > 0 && (
+            <Card>
+              <CardHeader><CardTitle className="text-base">Financial Ratios</CardTitle></CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {ratios.map((ratio: any, i: number) => (
+                    <div key={i} className="p-3 rounded-lg bg-muted/30 border">
+                      <div className="text-xs text-muted-foreground capitalize">{ratio.name?.replace(/_/g, ' ')}</div>
+                      <div className="text-lg font-bold mt-1">
+                        {ratio.value != null ? (typeof ratio.value === 'number' && Math.abs(ratio.value) < 10 ? `${(ratio.value * 100).toFixed(1)}%` : ratio.value.toFixed(2)) : 'N/A'}
                       </div>
-                      <CardTitle className="text-lg text-white mt-2">{risk.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-slate-400 text-sm mb-4">{risk.description}</p>
-                      <div className="text-xs text-slate-500 bg-slate-950 p-2 rounded border border-slate-800">
-                        <strong className="text-slate-400">Source:</strong> {risk.evidence}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )) : (
-                  <div className="col-span-2 text-center p-12 bg-slate-900 border-slate-800 rounded-xl text-slate-400">
-                    No risk data identified yet. Upload documents and run analysis.
-                  </div>
-                )}
-              </div>
-            </TabsContent>
+                      {ratio.fiscalYear && <div className="text-xs text-muted-foreground">FY {ratio.fiscalYear}</div>}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-            <TabsContent value="opportunities">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {opportunities.length > 0 ? opportunities.map((opp, idx) => (
-                  <Card key={idx} className="bg-slate-900 border-slate-800 border-l-4 border-l-cyan-500">
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between">
-                        <Badge variant="outline" className="text-cyan-400 border-cyan-900 bg-cyan-950/30">{opp.category}</Badge>
-                        <span className="text-xs text-slate-500">Confidence: {opp.confidenceScore}%</span>
-                      </div>
-                      <CardTitle className="text-lg text-white mt-2">{opp.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="w-full bg-slate-800 rounded-full h-1.5 mb-4">
-                        <div className="bg-cyan-500 h-1.5 rounded-full" style={{ width: `${opp.confidenceScore}%` }}></div>
-                      </div>
-                      <p className="text-slate-400 text-sm mb-4">{opp.description}</p>
-                    </CardContent>
-                  </Card>
-                )) : (
-                  <div className="col-span-2 text-center p-12 bg-slate-900 border-slate-800 rounded-xl text-slate-400">
-                    No opportunities identified yet.
-                  </div>
-                )}
-              </div>
-            </TabsContent>
+          {/* Insights */}
+          {metrics.length === 0 && !analyzing.financials && (
+            <Card>
+              <CardContent className="py-12 text-center text-muted-foreground">
+                <TrendingUp className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                <p>Upload financial documents and run analysis to see financial metrics.</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
 
-            <TabsContent value="chat" className="h-[600px] bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
-              <ChatInterface companyId={id} />
-            </TabsContent>
+        {/* ── Risks ────────────────────────────────────────────────────────── */}
+        <TabsContent value="risks" className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold">Risk Analysis</h2>
+            <Button variant="outline" size="sm" onClick={() => runAnalysis('risks')} disabled={analyzing.risks}>
+              {analyzing.risks ? <RefreshCw className="w-4 h-4 animate-spin mr-1" /> : null}
+              {risks.length > 0 ? 'Re-analyze' : 'Analyze Risks'}
+            </Button>
+          </div>
 
-          </Tabs>
-        </div>
-      </div>
+          {risks.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {risks.map((risk: any, i: number) => (
+                <RiskCard key={i} risk={risk} />
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="py-12 text-center text-muted-foreground">
+                <AlertTriangle className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                <p>No risks identified yet. Run risk analysis to get started.</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        {/* ── Opportunities ────────────────────────────────────────────────── */}
+        <TabsContent value="opportunities" className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold">Growth Opportunities</h2>
+            <Button variant="outline" size="sm" onClick={() => runAnalysis('opportunities')} disabled={analyzing.opportunities}>
+              {analyzing.opportunities ? <RefreshCw className="w-4 h-4 animate-spin mr-1" /> : null}
+              {opportunities.length > 0 ? 'Re-analyze' : 'Analyze Opportunities'}
+            </Button>
+          </div>
+
+          {opportunities.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {opportunities.map((opp: any, i: number) => (
+                <OpportunityCard key={i} opportunity={opp} />
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="py-12 text-center text-muted-foreground">
+                <Lightbulb className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                <p>No growth opportunities identified yet. Run analysis to get started.</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        {/* ── Chat ─────────────────────────────────────────────────────────── */}
+        <TabsContent value="chat">
+          <div className="h-[600px] rounded-xl border overflow-hidden">
+            <ChatInterface companyId={id} />
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

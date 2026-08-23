@@ -1,88 +1,76 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { ChevronDown, ChevronUp, TrendingUp, Lightbulb } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { OpportunityItem } from "@/types";
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { ChevronDown, ChevronUp, TrendingUp, Lightbulb } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { OpportunityItem, SourceCitation } from '@/types';
 
 export function OpportunityCard({ opportunity }: { opportunity: OpportunityItem }) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+
+  const confidence = typeof opportunity.confidence === 'string'
+    ? parseFloat(opportunity.confidence) || 0
+    : opportunity.confidence || 0;
 
   return (
-    <Card className="overflow-hidden border-l-4 border-l-emerald-500/50 transition-all hover:shadow-md bg-gradient-to-br from-background to-emerald-950/5">
+    <Card className="overflow-hidden border-l-4 border-l-emerald-500/50 transition-all hover:shadow-md">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between mb-2">
-          <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 flex items-center gap-1.5">
-            <Lightbulb className="w-3.5 h-3.5" />
+          <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-xs flex items-center gap-1">
+            <Lightbulb className="w-3 h-3" />
             {opportunity.category}
           </Badge>
         </div>
-        <CardTitle className="text-lg font-bold flex items-start gap-2">
-          <TrendingUp className="w-5 h-5 mt-0.5 text-emerald-500 opacity-80" />
+        <CardTitle className="text-base font-semibold flex items-start gap-2">
+          <TrendingUp className="w-4 h-4 mt-0.5 text-emerald-500 shrink-0" />
           {opportunity.title}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          {opportunity.description}
-        </p>
+      <CardContent className="space-y-3">
+        <p className="text-sm text-muted-foreground leading-relaxed">{opportunity.description}</p>
 
-        <div className="space-y-1.5">
-          <div className="flex justify-between items-center text-xs font-medium">
-            <span className="text-muted-foreground">Confidence Score</span>
-            <span className={cn(
-              opportunity.confidenceScore > 80 ? "text-emerald-500" : 
-              opportunity.confidenceScore > 50 ? "text-yellow-500" : "text-orange-500"
-            )}>
-              {opportunity.confidenceScore}%
-            </span>
+        {confidence > 0 && (
+          <div className="space-y-1">
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-muted-foreground">Confidence</span>
+              <span className={cn(
+                confidence > 70 ? 'text-emerald-500' : confidence > 40 ? 'text-yellow-500' : 'text-orange-500'
+              )}>
+                {Math.round(confidence)}%
+              </span>
+            </div>
+            <Progress value={confidence} className="h-1.5" />
           </div>
-          <Progress 
-            value={opportunity.confidenceScore} 
-            className="h-1.5"
-            indicatorColor={
-              opportunity.confidenceScore > 80 ? "bg-emerald-500" : 
-              opportunity.confidenceScore > 50 ? "bg-yellow-500" : "bg-orange-500"
-            }
-          />
-        </div>
+        )}
 
-        {(opportunity.evidence || (opportunity.sources && opportunity.sources.length > 0)) && (
-          <div className="border-t pt-4 mt-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full flex justify-between items-center h-8 text-xs font-medium"
-              onClick={() => setIsExpanded(!isExpanded)}
-            >
-              View Evidence & Sources
-              {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </Button>
-            
-            {isExpanded && (
-              <div className="mt-3 space-y-3 animate-in slide-in-from-top-2 text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
-                {opportunity.evidence && (
-                  <div>
-                    <span className="font-semibold text-foreground block mb-1">Evidence:</span>
-                    <p>{opportunity.evidence}</p>
-                  </div>
-                )}
-                {opportunity.sources && opportunity.sources.length > 0 && (
-                  <div>
-                    <span className="font-semibold text-foreground block mb-1">Sources:</span>
-                    <div className="flex flex-wrap gap-1.5 mt-1.5">
-                      {opportunity.sources.map((source, idx) => (
-                        <Badge key={idx} variant="secondary" className="text-[10px] px-1.5 py-0 border-emerald-500/20">
-                          {source}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
+        {opportunity.evidence && (
+          <Button variant="ghost" size="sm" className="w-full justify-between h-8 text-xs"
+            onClick={() => setExpanded(!expanded)}>
+            Evidence & Sources
+            {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </Button>
+        )}
+
+        {expanded && (
+          <div className="space-y-3 text-sm bg-muted/30 p-3 rounded-lg">
+            <div>
+              <span className="font-semibold text-xs">Evidence:</span>
+              <p className="text-muted-foreground mt-1">{opportunity.evidence}</p>
+            </div>
+            {opportunity.sources && opportunity.sources.length > 0 && (
+              <div>
+                <span className="font-semibold text-xs">Sources:</span>
+                <div className="flex flex-wrap gap-1.5 mt-1">
+                  {opportunity.sources.map((src: SourceCitation, idx: number) => (
+                    <Badge key={idx} variant="secondary" className="text-[10px]">
+                      {src.documentTitle || `Doc ${src.documentId}`} p.{src.pageNumber}
+                    </Badge>
+                  ))}
+                </div>
               </div>
             )}
           </div>

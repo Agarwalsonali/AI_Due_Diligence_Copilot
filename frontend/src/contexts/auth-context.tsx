@@ -3,13 +3,13 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '@/types';
 import { authAPI } from '@/lib/api';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (data: any) => Promise<void>;
-  register: (data: any) => Promise<void>;
+  login: (emailOrData: string | { email: string; password: string }, password?: string) => Promise<void>;
+  register: (nameOrData: string | { name: string; email: string; password: string }, email?: string, password?: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -19,7 +19,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const pathname = usePathname();
 
   const fetchUser = async () => {
     try {
@@ -31,7 +30,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
       }
     } catch (error) {
-      console.error('Failed to fetch user', error);
       setUser(null);
       localStorage.removeItem('access_token');
     } finally {
@@ -43,31 +41,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fetchUser();
   }, []);
 
-  const login = async (emailOrData: any, password?: string) => {
+  const login = async (emailOrData: string | { email: string; password: string }, password?: string) => {
     const payload = typeof emailOrData === 'string'
       ? { email: emailOrData, password: password! }
       : emailOrData;
     const response = await authAPI.login(payload);
     localStorage.setItem('access_token', response.data.access_token);
     await fetchUser();
-    router.push('/');
+    router.push('/dashboard');
   };
 
-  const register = async (nameOrData: any, email?: string, password?: string) => {
+  const register = async (nameOrData: string | { name: string; email: string; password: string }, email?: string, password?: string) => {
     const payload = typeof nameOrData === 'string'
       ? { name: nameOrData, email: email!, password: password! }
       : nameOrData;
     const response = await authAPI.register(payload);
     localStorage.setItem('access_token', response.data.access_token);
     await fetchUser();
-    router.push('/');
+    router.push('/dashboard');
   };
 
   const logout = async () => {
     try {
       await authAPI.logout();
     } catch (error) {
-      console.error('Logout error', error);
+      // Ignore logout errors
     } finally {
       localStorage.removeItem('access_token');
       setUser(null);

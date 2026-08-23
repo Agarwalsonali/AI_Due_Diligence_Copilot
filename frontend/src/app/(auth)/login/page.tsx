@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts/auth-context';
@@ -29,7 +29,8 @@ export default function LoginPage() {
       toast.success('Logged in successfully');
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.message || 'Failed to login');
+      const msg = err?.response?.data?.detail || err?.message || 'Failed to login';
+      setError(msg);
       toast.error('Login failed');
     } finally {
       setLoading(false);
@@ -37,7 +38,7 @@ export default function LoginPage() {
   };
 
   return (
-    <Card className="border-muted bg-card/60 backdrop-blur-xl shadow-2xl animate-slide-up">
+    <Card className="border-border shadow-2xl animate-slide-up w-full max-w-md mx-auto">
       <CardHeader className="space-y-1 text-center pb-8">
         <div className="flex justify-center mb-4">
           <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center border border-primary/20">
@@ -61,11 +62,11 @@ export default function LoginPage() {
             <Label htmlFor="email">Email</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input 
-                id="email" 
-                type="email" 
-                placeholder="m@example.com" 
-                className="pl-10 bg-background/50"
+              <Input
+                id="email"
+                type="email"
+                placeholder="m@example.com"
+                className="pl-10"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -73,15 +74,13 @@ export default function LoginPage() {
             </div>
           </div>
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
-            </div>
+            <Label htmlFor="password">Password</Label>
             <div className="relative">
               <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input 
-                id="password" 
-                type="password" 
-                className="pl-10 bg-background/50"
+              <Input
+                id="password"
+                type="password"
+                className="pl-10"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -90,11 +89,11 @@ export default function LoginPage() {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4 pt-4">
-          <Button type="submit" className="w-full shadow-lg" disabled={loading}>
+          <Button type="submit" className="w-full" disabled={loading}>
             {loading ? 'Signing in...' : 'Sign In'}
           </Button>
           <div className="text-center text-sm text-muted-foreground">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link href="/register" className="text-primary hover:underline font-medium">
               Register
             </Link>

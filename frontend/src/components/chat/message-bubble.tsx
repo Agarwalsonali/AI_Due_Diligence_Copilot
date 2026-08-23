@@ -1,46 +1,44 @@
-"use client";
+'use client';
 
-import React from "react";
-import ReactMarkdown from "react-markdown";
-import { cn } from "@/lib/utils";
-import { SourceCitation } from "@/types";
-import { User, Bot } from "lucide-react";
-import { SourceCard } from "./source-card";
+import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import { cn } from '@/lib/utils';
+import { SourceCitation } from '@/types';
+import { User, Bot } from 'lucide-react';
+import { SourceCard } from './source-card';
 
 interface MessageBubbleProps {
   message: {
     id: number;
-    role: "user" | "assistant";
+    role: 'user' | 'assistant';
     content: string;
     sources: SourceCitation[] | null;
-    created_at: string;
+    createdAt: string;
   };
   isStreaming?: boolean;
 }
 
 export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
-  const isUser = message.role === "user";
+  const isUser = message.role === 'user';
 
   return (
-    <div className={cn("flex gap-3 px-4", isUser ? "justify-end" : "justify-start")}>
+    <div className={cn('flex gap-3 px-2', isUser ? 'justify-end' : 'justify-start')}>
       {!isUser && (
-        <div className="shrink-0 h-8 w-8 rounded-full bg-blue-600/20 flex items-center justify-center mt-1">
-          <Bot className="h-4 w-4 text-blue-400" />
+        <div className="shrink-0 h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center mt-1">
+          <Bot className="h-4 w-4 text-primary" />
         </div>
       )}
 
-      <div
-        className={cn(
-          "max-w-[80%] rounded-xl px-4 py-3",
-          isUser
-            ? "bg-blue-600 text-white"
-            : "bg-slate-800 text-slate-200 border border-slate-700"
-        )}
-      >
+      <div className={cn(
+        'max-w-[80%] rounded-xl px-4 py-3',
+        isUser
+          ? 'bg-primary text-primary-foreground'
+          : 'bg-muted border'
+      )}>
         {isUser ? (
           <p className="text-sm leading-relaxed">{message.content}</p>
         ) : (
-          <div className="prose prose-invert prose-sm max-w-none">
+          <div className="prose prose-sm max-w-none dark:prose-invert">
             <ReactMarkdown
               components={{
                 p: ({ children }) => <p className="text-sm leading-relaxed mb-2 last:mb-0">{children}</p>,
@@ -52,12 +50,12 @@ export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
                 code: ({ children, className }) => {
                   const isInline = !className;
                   return isInline ? (
-                    <code className="bg-slate-700 px-1.5 py-0.5 rounded text-xs">{children}</code>
+                    <code className="bg-muted-foreground/10 px-1.5 py-0.5 rounded text-xs">{children}</code>
                   ) : (
                     <code className={className}>{children}</code>
                   );
                 },
-                strong: ({ children }) => <strong className="text-slate-100 font-semibold">{children}</strong>,
+                strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
               }}
             >
               {message.content}
@@ -65,15 +63,13 @@ export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
           </div>
         )}
 
-        {/* Streaming indicator */}
         {isStreaming && (
-          <span className="inline-block w-2 h-4 bg-blue-400 animate-pulse ml-1" />
+          <span className="inline-block w-2 h-4 bg-primary animate-pulse ml-1" />
         )}
 
-        {/* Sources */}
         {message.sources && message.sources.length > 0 && (
-          <div className="mt-3 pt-3 border-t border-slate-700/50">
-            <p className="text-xs text-slate-500 mb-2 font-medium">Sources</p>
+          <div className="mt-3 pt-3 border-t border-border/50">
+            <p className="text-xs text-muted-foreground mb-2 font-medium">Sources</p>
             <div className="flex flex-wrap gap-2">
               {message.sources.map((source, idx) => (
                 <SourceCard key={idx} source={source} index={idx + 1} />
@@ -84,8 +80,8 @@ export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
       </div>
 
       {isUser && (
-        <div className="shrink-0 h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center mt-1">
-          <User className="h-4 w-4 text-slate-300" />
+        <div className="shrink-0 h-8 w-8 rounded-full bg-muted flex items-center justify-center mt-1">
+          <User className="h-4 w-4 text-muted-foreground" />
         </div>
       )}
     </div>

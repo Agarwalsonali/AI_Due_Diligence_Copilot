@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import React, { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Send, Loader2 } from "lucide-react";
-import { MessageBubble } from "./message-bubble";
-import { SuggestedQuestions } from "./suggested-questions";
-import { streamChat } from "@/lib/api";
-import { ChatMessage, SourceCitation } from "@/types";
+import React, { useState, useRef, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Send, Loader2 } from 'lucide-react';
+import { MessageBubble } from './message-bubble';
+import { SuggestedQuestions } from './suggested-questions';
+import { chatAPI } from '@/lib/api';
+import { ChatMessage, SourceCitation, ChatResponse } from '@/types';
 
 interface ChatInterfaceProps {
   companyId?: number | string;
@@ -15,20 +15,19 @@ interface ChatInterfaceProps {
 
 export function ChatInterface({ companyId }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [streamingText, setStreamingText] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [sessionId, setSessionId] = useState<number | undefined>();
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, streamingText]);
+  }, [messages]);
 
   const handleSend = async (text?: string) => {
     const message = text || input.trim();
@@ -36,76 +35,70 @@ export function ChatInterface({ companyId }: ChatInterfaceProps) {
 
     const userMessage: ChatMessage = {
       id: Date.now(),
-      role: "user",
+      role: 'user',
       content: message,
       sources: null,
-      created_at: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
     setLoading(true);
-    setStreamingText("");
 
-    const companyIdNum = typeof companyId === "string" ? parseInt(companyId) : companyId;
+    const companyIdNum = typeof companyId === 'string' ? parseInt(companyId) : companyId;
 
-    streamChat(
-      {
+    try {
+      const response: ChatResponse = await chatAPI.send({
         message,
         company_id: companyIdNum,
         session_id: sessionId,
-      },
-      (chunk: string) => {
-        setStreamingText((prev) => prev + chunk);
-      },
-      (response: any) => {
-        const assistantMessage: ChatMessage = {
-          id: Date.now() + 1,
-          role: "assistant",
-          content: response.content || streamingText,
-          sources: response.sources || [],
-          created_at: new Date().toISOString(),
-        };
-        setMessages((prev) => [...prev, assistantMessage]);
-        setStreamingText("");
-        if (response.session_id) setSessionId(response.session_id);
-        setLoading(false);
-      },
-      (error: Error) => {
-        const errorMessage: ChatMessage = {
-          id: Date.now() + 1,
-          role: "assistant",
-          content: "Sorry, I encountered an error processing your request. Please try again.",
-          sources: null,
-          created_at: new Date().toISOString(),
-        };
-        setMessages((prev) => [...prev, errorMessage]);
-        setStreamingText("");
-        setLoading(false);
-      }
-    );
+      });
+
+      const assistantMessage: ChatMessage = {
+        id: Date.now() + 1,
+        role: 'assistant',
+        content: response.answer || 'No answer was generated.',
+        sources: response.sources || [],
+        createdAt: new Date().toISOString(),
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+      if (response.sessionId) setSessionId(response.sessionId);
+    } catch (error: any) {
+      const errorMsg = error?.response?.data?.detail || 'An error occurred processing your request.';
+      const errorMessage: ChatMessage = {
+        id: Date.now() + 1,
+        role: 'assistant',
+        content: `Sorry, ${errorMsg}`,
+        sources: null,
+        createdAt: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-900">
+    <div className="flex flex-col h-full bg-card">
       {/* Messages area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && !loading ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className="text-slate-500 mb-8">
-              <div className="h-16 w-16 bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Send className="h-8 w-8 text-blue-500" />
+            <div className="mb-8">
+              <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Send className="h-7 w-7 text-primary" />
               </div>
-              <h3 className="text-lg font-medium text-slate-300 mb-2">Ask anything about this company</h3>
-              <p className="text-sm max-w-md">
-                Ask questions about financials, risks, opportunities, or any aspect of the company.
+              <h3 className="text-lg font-medium mb-2">Ask anything about this company</h3>
+              <p className="text-sm text-muted-foreground max-w-md">
+                Ask questions about financials, risks, opportunities, or any aspect.
                 All answers are grounded in the uploaded documents.
               </p>
             </div>
@@ -113,23 +106,11 @@ export function ChatInterface({ companyId }: ChatInterfaceProps) {
           </div>
         ) : (
           <>
-            {messages.map((msg) => (
+            {messages.map(msg => (
               <MessageBubble key={msg.id} message={msg} />
             ))}
-            {loading && streamingText && (
-              <MessageBubble
-                message={{
-                  id: -1,
-                  role: "assistant",
-                  content: streamingText,
-                  sources: null,
-                  created_at: new Date().toISOString(),
-                }}
-                isStreaming
-              />
-            )}
-            {loading && !streamingText && (
-              <div className="flex items-center gap-2 text-slate-400 px-4">
+            {loading && (
+              <div className="flex items-center gap-2 text-muted-foreground px-4 py-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <span className="text-sm">Thinking...</span>
               </div>
@@ -140,7 +121,7 @@ export function ChatInterface({ companyId }: ChatInterfaceProps) {
       </div>
 
       {/* Input area */}
-      <div className="p-4 border-t border-slate-800 bg-slate-900/80 backdrop-blur-md">
+      <div className="p-4 border-t bg-background">
         <div className="flex items-center gap-2 max-w-3xl mx-auto">
           <Input
             ref={inputRef}
@@ -149,13 +130,12 @@ export function ChatInterface({ companyId }: ChatInterfaceProps) {
             onKeyDown={handleKeyDown}
             placeholder="Ask a question about this company..."
             disabled={loading}
-            className="bg-slate-800 border-slate-700 text-slate-200 placeholder:text-slate-500 focus-visible:ring-blue-500"
           />
           <Button
             onClick={() => handleSend()}
             disabled={!input.trim() || loading}
             size="icon"
-            className="bg-blue-600 hover:bg-blue-700 shrink-0"
+            className="shrink-0"
           >
             <Send className="h-4 w-4" />
           </Button>

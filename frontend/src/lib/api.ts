@@ -22,6 +22,7 @@ function camelizeKeys(obj: any): any {
 const api = axios.create({
   baseURL: `${API_URL}/api`,
   headers: { "Content-Type": "application/json" },
+  timeout: 120000, // 2 min for analysis endpoints
 });
 
 // Transform response data from snake_case to camelCase
@@ -49,7 +50,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401 && typeof window !== "undefined") {
       localStorage.removeItem("access_token");
-      if (window.location.pathname !== "/login") {
+      if (window.location.pathname !== "/login" && window.location.pathname !== "/register") {
         window.location.href = "/login";
       }
     }
@@ -59,7 +60,7 @@ api.interceptors.response.use(
 
 export default api;
 
-// Auth API
+// ─── Auth API ────────────────────────────────────────────────────────────────
 export const authAPI = {
   register: (data: { name: string; email: string; password: string }) =>
     api.post("/auth/register", data),
@@ -69,10 +70,10 @@ export const authAPI = {
   logout: () => api.post("/auth/logout"),
 };
 
-// Company API
+// ─── Company API ─────────────────────────────────────────────────────────────
 export const companyAPI = {
   list: (search?: string) =>
-    api.get("/companies", { params: { search } }),
+    api.get("/companies", { params: search ? { search } : {} }).then(r => r.data),
   create: (data: {
     name: string;
     ticker?: string;
@@ -80,112 +81,54 @@ export const companyAPI = {
     sector?: string;
     description?: string;
     website?: string;
-  }) => api.post("/companies", data),
-  get: (id: number | string) => api.get(`/companies/${id}`),
-  delete: (id: number | string) => api.delete(`/companies/${id}`),
+  }) => api.post("/companies", data).then(r => r.data),
+  get: (id: number | string) => api.get(`/companies/${id}`).then(r => r.data),
+  delete: (id: number | string) => api.delete(`/companies/${id}`).then(r => r.data),
+  analysis: (id: number | string) => api.get(`/companies/${id}/analysis`).then(r => r.data),
 };
 
-// Document API
+// ─── Document API ────────────────────────────────────────────────────────────
 export const documentAPI = {
   upload: (formData: FormData) =>
     api.post("/documents/upload", formData, {
       headers: { "Content-Type": "multipart/form-data" },
-    }),
+    }).then(r => r.data),
   list: (companyId?: number | string) =>
-    api.get("/documents", { params: companyId ? { company_id: companyId } : {} }),
-  get: (id: number | string) => api.get(`/documents/${id}`),
-  delete: (id: number | string) => api.delete(`/documents/${id}`),
+    api.get("/documents", { params: companyId ? { company_id: companyId } : {} }).then(r => r.data),
+  get: (id: number | string) => api.get(`/documents/${id}`).then(r => r.data),
+  delete: (id: number | string) => api.delete(`/documents/${id}`).then(r => r.data),
 };
 
-// Chat API
+// ─── Chat API ────────────────────────────────────────────────────────────────
 export const chatAPI = {
-  send: (data: { message: string; company_id?: number; session_id?: number }) =>
-    api.post("/chat", data),
-  sessions: () => api.get("/chat/sessions"),
-  session: (id: number) => api.get(`/chat/sessions/${id}`),
-  deleteSession: (id: number) => api.delete(`/chat/sessions/${id}`),
+  send: (data: { message: string; company_id?: number; document_id?: number; session_id?: number }) =>
+    api.post("/chat/", data).then(r => r.data),
+  sessions: () => api.get("/chat/sessions").then(r => r.data),
+  session: (id: number) => api.get(`/chat/sessions/${id}`).then(r => r.data),
+  deleteSession: (id: number) => api.delete(`/chat/sessions/${id}`).then(r => r.data),
 };
 
-// Analysis API
+// ─── Analysis API ────────────────────────────────────────────────────────────
 export const analysisAPI = {
-  summary: (companyId: number) =>
-    api.post("/analysis/summary", { company_id: companyId }),
-  risks: (companyId: number) =>
-    api.post("/analysis/risks", { company_id: companyId }),
-  opportunities: (companyId: number) =>
-    api.post("/analysis/opportunities", { company_id: companyId }),
   financials: (companyId: number) =>
-    api.post("/analysis/financials", { company_id: companyId }),
+    api.post("/analysis/financials", { company_id: companyId }).then(r => r.data),
+  health: (companyId: number) =>
+    api.post("/analysis/health", { company_id: companyId }).then(r => r.data),
+  risks: (companyId: number) =>
+    api.post("/analysis/risks", { company_id: companyId }).then(r => r.data),
+  opportunities: (companyId: number) =>
+    api.post("/analysis/opportunities", { company_id: companyId }).then(r => r.data),
+  summary: (companyId: number) =>
+    api.post("/analysis/summary", { company_id: companyId }).then(r => r.data),
   compare: (companyIds: number[]) =>
-    api.post("/analysis/compare", { company_ids: companyIds }),
+    api.post("/analysis/compare", { company_ids: companyIds }).then(r => r.data),
+  regenerate: (companyId: number) =>
+    api.post(`/analysis/${companyId}/regenerate`).then(r => r.data),
 };
 
-// Report API
+// ─── Report API ──────────────────────────────────────────────────────────────
 export const reportAPI = {
   generate: (companyId: number) =>
-    api.post("/reports/generate", { company_id: companyId }),
-  get: (id: number) => api.get(`/reports/${id}`),
-  download: (id: number) =>
-    api.get(`/reports/${id}/download`, { responseType: "blob" }),
+    api.post("/reports/generate", { company_id: companyId }).then(r => r.data),
+  get: (id: number) => api.get(`/reports/${id}`).then(r => r.data),
 };
-
-// SSE helper for streaming chat
-export function streamChat(
-  data: { message: string; company_id?: number; session_id?: number },
-  onChunk: (chunk: string) => void,
-  onDone: (response: { session_id: number; sources: any[] }) => void,
-  onError: (error: Error) => void
-) {
-  const token = localStorage.getItem("access_token");
-
-  fetch(`${API_URL}/api/chat`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(data),
-  })
-    .then(async (response) => {
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error("No reader");
-
-      const decoder = new TextDecoder();
-      let buffer = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || "";
-
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            const data = line.slice(6);
-            if (data === "[DONE]") {
-              continue;
-            }
-            try {
-              const parsed = JSON.parse(data);
-              if (parsed.text) {
-                onChunk(parsed.text);
-              } else if (parsed.type === "chunk") {
-                onChunk(parsed.content);
-              } else if (parsed.type === "done") {
-                onDone(parsed);
-              } else if (parsed.type === "error") {
-                onError(new Error(parsed.message));
-              }
-            } catch {
-              // Not JSON, treat as text chunk
-              onChunk(data);
-            }
-          }
-        }
-      }
-    })
-    .catch(onError);
-}

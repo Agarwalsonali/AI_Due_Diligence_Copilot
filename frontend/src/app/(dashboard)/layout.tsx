@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'next/navigation';
@@ -23,7 +23,7 @@ export default function DashboardLayout({
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -36,7 +36,7 @@ export default function DashboardLayout({
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <Header />
-        <main className="flex-1 overflow-y-auto p-6 scrollbar-hide bg-slate-900/20">
+        <main className="flex-1 overflow-y-auto p-6">
           <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
             {children}
           </div>
