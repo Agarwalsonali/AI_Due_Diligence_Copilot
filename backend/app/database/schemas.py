@@ -149,7 +149,7 @@ class RiskItem(BaseModel):
     severity: str
     description: str
     evidence: str
-    sources: List[SourceCitation]
+    sources: Optional[List[SourceCitation]] = None
     
     model_config = ConfigDict(from_attributes=True)
 
@@ -158,21 +158,25 @@ class OpportunityItem(BaseModel):
     title: str
     description: str
     evidence: str
-    confidence: str
-    sources: List[SourceCitation]
+    confidence: Optional[str] = None
+    sources: Optional[List[SourceCitation]] = None
     
     model_config = ConfigDict(from_attributes=True)
 
 class FinancialMetricResponse(BaseModel):
     id: int
     company_id: int
-    document_id: Optional[int]
+    document_id: Optional[int] = None
     metric_name: str
-    metric_value: float
-    unit: Optional[str]
-    period: Optional[str]
-    fiscal_year: Optional[int]
-    source: str
+    metric_value: Optional[float] = None
+    currency: Optional[str] = None
+    unit: Optional[str] = None
+    fiscal_year: Optional[int] = None
+    status: str = "extracted"
+    source_page: Optional[int] = None
+    source_section: Optional[str] = None
+    source_excerpt: Optional[str] = None
+    source: str = ""
     created_at: datetime
     
     model_config = ConfigDict(from_attributes=True)
@@ -199,9 +203,40 @@ class OpportunityAnalysisResponse(BaseModel):
 class FinancialAnalysisResponse(BaseModel):
     company_id: int
     metrics: List[FinancialMetricResponse]
-    insights: List[str]
+    ratios: Optional[List[Dict[str, Any]]] = None
+    trends: Optional[Dict[str, List[Dict[str, Any]]]] = None
+    insights: Optional[List[str]] = None
+    status: str = "completed"
     
     model_config = ConfigDict(from_attributes=True)
+
+class FinancialHealthResponse(BaseModel):
+    company_id: int
+    overall: str
+    growth: Optional[str] = None
+    profitability: Optional[str] = None
+    liquidity: Optional[str] = None
+    leverage: Optional[str] = None
+    cash_flow: Optional[str] = None
+    explanation: str
+    scores: Optional[Dict[str, float]] = None
+    sources: Optional[List[SourceCitation]] = None
+    
+    model_config = ConfigDict(from_attributes=True)
+
+class AnalysisRegenerateResponse(BaseModel):
+    message: str
+    company_id: int
+    analysis_types: List[str]
+
+
+class ConsolidatedAnalysisResponse(BaseModel):
+    company_id: int
+    financials: Optional[FinancialAnalysisResponse] = None
+    financial_health: Optional[FinancialHealthResponse] = None
+    risks: Optional[RiskAnalysisResponse] = None
+    opportunities: Optional[OpportunityAnalysisResponse] = None
+    summary: Optional[SummaryResponse] = None
 
 class ComparisonResponse(BaseModel):
     companies: List[CompanyResponse]

@@ -91,11 +91,14 @@ class Analysis(Base):
     __tablename__ = "analyses"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    company_id: Mapped[int] = mapped_column(Integer, ForeignKey("companies.id"))
+    company_id: Mapped[int] = mapped_column(Integer, ForeignKey("companies.id"), index=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
-    analysis_type: Mapped[str] = mapped_column(String)
+    analysis_type: Mapped[str] = mapped_column(String, index=True)
+    status: Mapped[str] = mapped_column(String, default="completed")  # pending, processing, completed, failed
     content: Mapped[dict] = mapped_column(JSON)
+    error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 class FinancialMetric(Base):
     __tablename__ = "financial_metrics"
@@ -103,13 +106,19 @@ class FinancialMetric(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     company_id: Mapped[int] = mapped_column(Integer, ForeignKey("companies.id"))
     document_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("documents.id"), nullable=True)
-    metric_name: Mapped[str] = mapped_column(String)
-    metric_value: Mapped[float] = mapped_column(Float)
+    metric_name: Mapped[str] = mapped_column(String, index=True)
+    metric_value: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    currency: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     unit: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    period: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     fiscal_year: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    source: Mapped[str] = mapped_column(String)
+    status: Mapped[str] = mapped_column(String, default="extracted")  # extracted, calculated, not_found, suspicious
+    source_page: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    source_section: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    source_excerpt: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    source: Mapped[str] = mapped_column(String, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    document: Mapped[Optional["Document"]] = relationship("Document", foreign_keys=[document_id], lazy="select")
 
 class Report(Base):
     __tablename__ = "reports"
