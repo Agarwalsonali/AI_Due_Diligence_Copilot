@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const response = await authAPI.login(payload);
     localStorage.setItem('access_token', response.data.access_token);
     await fetchUser();
-    router.push('/dashboard');
+    router.push('/');
   };
 
   const register = async (nameOrData: string | { name: string; email: string; password: string }, email?: string, password?: string) => {
@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const response = await authAPI.register(payload);
     localStorage.setItem('access_token', response.data.access_token);
     await fetchUser();
-    router.push('/dashboard');
+    router.push('/');
   };
 
   const logout = async () => {

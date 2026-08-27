@@ -33,7 +33,7 @@ export default function RegisterPage() {
     try {
       await register(name, email, password);
       toast.success('Account created successfully');
-      router.push('/dashboard');
+      router.push('/');
     } catch (err: any) {
       const msg = err?.response?.data?.detail || err?.message || 'Failed to register';
       setError(msg);
