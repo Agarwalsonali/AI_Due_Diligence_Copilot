@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ? { email: emailOrData, password: password! }
       : emailOrData;
     const response = await authAPI.login(payload);
-    localStorage.setItem('access_token', response.data.access_token);
+    localStorage.setItem('access_token', response.data.accessToken || response.data.access_token);
     await fetchUser();
     router.push('/');
   };
@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ? { name: nameOrData, email: email!, password: password! }
       : nameOrData;
     const response = await authAPI.register(payload);
-    localStorage.setItem('access_token', response.data.access_token);
+    localStorage.setItem('access_token', response.data.accessToken || response.data.access_token);
     await fetchUser();
     router.push('/');
   };
