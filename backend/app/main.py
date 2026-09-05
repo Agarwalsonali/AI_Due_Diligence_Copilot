@@ -38,7 +38,8 @@ app = FastAPI(
     title="AI Due Diligence Copilot API",
     description="Backend API for AI Due Diligence Copilot",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
+    redirect_slashes=False,
 )
 
 # CORS configuration
