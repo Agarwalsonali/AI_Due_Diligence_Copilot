@@ -128,6 +128,7 @@ export const analysisAPI = {
 
 // ─── Report API ──────────────────────────────────────────────────────────────
 export const reportAPI = {
+  list: () => api.get("/reports/").then(r => r.data),
   generate: (companyId: number) =>
     api.post("/reports/generate", { company_id: companyId }).then(r => r.data),
   get: (id: number) => api.get(`/reports/${id}`).then(r => r.data),

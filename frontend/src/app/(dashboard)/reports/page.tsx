@@ -21,8 +21,12 @@ export default function ReportsPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await companyAPI.list();
-        setCompanies(Array.isArray(data) ? data : []);
+        const [companiesData, reportsData] = await Promise.all([
+          companyAPI.list().catch(() => []),
+          reportAPI.list().catch(() => []),
+        ]);
+        setCompanies(Array.isArray(companiesData) ? companiesData : []);
+        setReports(Array.isArray(reportsData) ? reportsData : []);
       } catch (e) {
         toast.error('Failed to load data');
       } finally {
