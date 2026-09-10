@@ -45,7 +45,7 @@ async def upload_document_endpoint(
 
 @router.get("/", response_model=list[DocumentResponse])
 async def list_documents(
-    company_id: int = Query(...),
+    company_id: Optional[int] = Query(None),
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):

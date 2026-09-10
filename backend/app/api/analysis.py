@@ -228,18 +228,24 @@ async def generate_risks(
     if existing:
         return existing
 
-    chunks = await _get_context(
-        req.company_id,
-        "Company risks, financial risks, operational risks, market risks, regulatory risks, competitive risks, supply chain risks, technology risks, legal risks",
-        db,
-    )
-    generator = get_llm_generator()
-    risks = await analyze_risks(req.company_id, chunks, generator)
+    try:
+        chunks = await _get_context(
+            req.company_id,
+            "Company risks, financial risks, operational risks, market risks, regulatory risks, competitive risks, supply chain risks, technology risks, legal risks",
+            db,
+        )
+        generator = get_llm_generator()
+        risks = await analyze_risks(req.company_id, chunks, generator)
 
-    result = {"company_id": req.company_id, "risks": risks}
-    await _save_analysis(db, req.company_id, user.id, "risks", result)
+        result = {"company_id": req.company_id, "risks": risks}
+        await _save_analysis(db, req.company_id, user.id, "risks", result)
 
-    return result
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("risks_failed", company_id=req.company_id, error=str(e))
+        raise HTTPException(status_code=500, detail=f"Risk analysis failed: {str(e)}")
 
 
 # ─── Growth Opportunities ─────────────────────────────────────────────────────
@@ -257,18 +263,24 @@ async def generate_opportunities(
     if existing:
         return existing
 
-    chunks = await _get_context(
-        req.company_id,
-        "Growth opportunities, market expansion, new products, strategic partnerships, AI, cloud, data center, international expansion, acquisitions",
-        db,
-    )
-    generator = get_llm_generator()
-    opportunities = await analyze_opportunities(req.company_id, chunks, generator)
+    try:
+        chunks = await _get_context(
+            req.company_id,
+            "Growth opportunities, market expansion, new products, strategic partnerships, AI, cloud, data center, international expansion, acquisitions",
+            db,
+        )
+        generator = get_llm_generator()
+        opportunities = await analyze_opportunities(req.company_id, chunks, generator)
 
-    result = {"company_id": req.company_id, "opportunities": opportunities}
-    await _save_analysis(db, req.company_id, user.id, "opportunities", result)
+        result = {"company_id": req.company_id, "opportunities": opportunities}
+        await _save_analysis(db, req.company_id, user.id, "opportunities", result)
 
-    return result
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("opportunities_failed", company_id=req.company_id, error=str(e))
+        raise HTTPException(status_code=500, detail=f"Opportunity analysis failed: {str(e)}")
 
 
 # ─── Executive Summary ────────────────────────────────────────────────────────
@@ -286,17 +298,23 @@ async def generate_summary(
     if existing:
         return existing
 
-    chunks = await _get_context(
-        req.company_id,
-        "Company overview, business model, financial performance, strengths, risks, opportunities, management outlook, market position",
-        db,
-    )
-    generator = get_llm_generator()
-    result = await generate_executive_summary(req.company_id, chunks, generator)
+    try:
+        chunks = await _get_context(
+            req.company_id,
+            "Company overview, business model, financial performance, strengths, risks, opportunities, management outlook, market position",
+            db,
+        )
+        generator = get_llm_generator()
+        result = await generate_executive_summary(req.company_id, chunks, generator)
 
-    await _save_analysis(db, req.company_id, user.id, "summary", result)
+        await _save_analysis(db, req.company_id, user.id, "summary", result)
 
-    return result
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("summary_failed", company_id=req.company_id, error=str(e))
+        raise HTTPException(status_code=500, detail=f"Summary generation failed: {str(e)}")
 
 
 # ─── Company Comparison ───────────────────────────────────────────────────────
@@ -308,15 +326,21 @@ async def compare_companies(
     user: User = Depends(get_current_user),
 ):
     """Compare multiple companies."""
-    generator = get_llm_generator()
-    chunks_by_company = {}
-    for cid in req.company_ids:
-        await _verify_company_access(cid, user, db)
-        chunks = await _get_context(cid, "Market position, financial health, risks, opportunities comparison", db)
-        chunks_by_company[cid] = chunks
+    try:
+        generator = get_llm_generator()
+        chunks_by_company = {}
+        for cid in req.company_ids:
+            await _verify_company_access(cid, user, db)
+            chunks = await _get_context(cid, "Market position, financial health, risks, opportunities comparison", db)
+            chunks_by_company[cid] = chunks
 
-    result = await compare_engine(req.company_ids, chunks_by_company, generator)
-    return result
+        result = await compare_engine(req.company_ids, chunks_by_company, generator)
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("compare_failed", error=str(e), company_ids=req.company_ids)
+        raise HTTPException(status_code=500, detail=f"Comparison failed: {str(e)}")
 
 
 # ─── Regenerate Analysis ──────────────────────────────────────────────────────

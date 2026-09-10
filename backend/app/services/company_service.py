@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from app.database.models import Company
+from sqlalchemy import select, func
+from app.database.models import Company, Document
 from app.database.schemas import CompanyCreate
 
 async def create_company(data: CompanyCreate, user_id: int, db: AsyncSession) -> Company:
@@ -18,10 +18,23 @@ async def get_companies(search: str | None, user_id: int, db: AsyncSession) -> l
     if search:
         stmt = stmt.where(Company.name.ilike(f"%{search}%"))
     result = await db.execute(stmt)
-    return result.scalars().all()
+    companies = result.scalars().all()
+
+    # Populate document_count for each company
+    for company in companies:
+        count_stmt = select(func.count(Document.id)).where(Document.company_id == company.id)
+        count_result = await db.execute(count_stmt)
+        company.document_count = count_result.scalar() or 0
+
+    return companies
 
 async def get_company(company_id: int, db: AsyncSession) -> Company:
-    return await db.get(Company, company_id)
+    company = await db.get(Company, company_id)
+    if company:
+        count_stmt = select(func.count(Document.id)).where(Document.company_id == company.id)
+        count_result = await db.execute(count_stmt)
+        company.document_count = count_result.scalar() or 0
+    return company
 
 async def delete_company(company_id: int, db: AsyncSession):
     company = await db.get(Company, company_id)

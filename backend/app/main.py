@@ -42,18 +42,17 @@ app = FastAPI(
     redirect_slashes=False,
 )
 
-# CORS configuration
-origins = settings.CORS_ORIGINS.split(",") if settings.CORS_ORIGINS else []
+# Inner middleware first, CORS last (so it wraps everything)
+app.add_middleware(RequestIDMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=[],
+    allow_origin_regex=r".*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-app.add_middleware(RequestIDMiddleware)
 
 # Register routers
 from app.api.auth import router as auth_router

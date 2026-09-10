@@ -105,12 +105,11 @@ async def upload_document(
     return doc
 
 
-async def get_documents(company_id: int, user_id: int, db: AsyncSession) -> list[Document]:
-    stmt = (
-        select(Document)
-        .where(Document.company_id == company_id, Document.user_id == user_id)
-        .order_by(Document.created_at.desc())
-    )
+async def get_documents(company_id: int | None, user_id: int, db: AsyncSession) -> list[Document]:
+    stmt = select(Document).where(Document.user_id == user_id)
+    if company_id is not None:
+        stmt = stmt.where(Document.company_id == company_id)
+    stmt = stmt.order_by(Document.created_at.desc())
     result = await db.execute(stmt)
     return result.scalars().all()
 
