@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { Loader2 } from 'lucide-react';
@@ -14,9 +14,14 @@ export default function DashboardLayout({
 }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const hasMounted = useRef(false);
 
   useEffect(() => {
-    if (!loading && !user) {
+    hasMounted.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (hasMounted.current && !loading && !user) {
       router.push('/login');
     }
   }, [user, loading, router]);

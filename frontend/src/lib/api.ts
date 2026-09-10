@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 // Snake case to camelCase converter
 function toCamelCase(str: string): string {
@@ -20,7 +20,7 @@ function camelizeKeys(obj: any): any {
 }
 
 const api = axios.create({
-  baseURL: "/api",
+  baseURL: `${API_URL}/api`,
   headers: { "Content-Type": "application/json" },
   timeout: 120000, // 2 min for analysis endpoints
 });
