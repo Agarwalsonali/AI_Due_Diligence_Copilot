@@ -74,12 +74,12 @@ class DocumentResponse(BaseModel):
     file_name: str
     file_path: str
     document_type: str
-    filing_date: Optional[date]
+    filing_date: Optional[datetime]
     page_count: int
     processing_status: str
     error_message: Optional[str]
     created_at: datetime
-    
+
     model_config = ConfigDict(from_attributes=True)
 
 class DocumentListResponse(BaseModel):

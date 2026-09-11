@@ -1,13 +1,11 @@
 """LLM generator for RAG question answering.
 
-Uses the existing OpenAI client. Enforces evidence-based answering
+Uses provider abstraction for LLM generation. Enforces evidence-based answering
 with strict source citation requirements.
 """
-from openai import AsyncOpenAI
-from app.core.config import get_settings
-from typing import List, Dict, Any, Optional
-import re
+from app.services.llm import get_llm_provider, BaseLLMProvider
 from app.core.logging import get_logger
+from typing import List, Dict, Any
 
 logger = get_logger("generator")
 
@@ -33,9 +31,13 @@ CRITICAL RULES:
 class LLMGenerator:
     """Generates answers using an LLM with source context."""
 
-    def __init__(self, api_key: str, base_url: str, model: str):
-        self.client = AsyncOpenAI(api_key=api_key, base_url=base_url)
-        self.model = model
+    def __init__(self, provider: BaseLLMProvider):
+        """Initialize with an LLM provider instance.
+
+        Args:
+            provider: BaseLLMProvider instance (Gemini, OpenAI, etc.)
+        """
+        self.provider = provider
 
     async def generate(
         self,
@@ -49,39 +51,12 @@ class LLMGenerator:
         Returns:
             {"answer": str, "sources": list}
         """
-        from app.rag.context import build_context
-        context_str = build_context(context_chunks)
-
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": f"Context:\n{context_str}\n\nQuestion: {user_message}"}
-        ]
-
-        try:
-            response = await self.client.chat.completions.create(
-                model=self.model,
-                messages=messages,
-                temperature=temperature,
-            )
-            answer = response.choices[0].message.content or ""
-            sources = self._extract_citations(answer, context_chunks)
-
-            logger.info(
-                "llm_generation_complete",
-                model=self.model,
-                answer_length=len(answer),
-                source_count=len(sources),
-                tokens_used=getattr(response.usage, 'total_tokens', None),
-            )
-
-            return {"answer": answer, "sources": sources}
-
-        except Exception as e:
-            logger.error("llm_generation_failed", error=str(e))
-            return {
-                "answer": "An error occurred while generating the response. Please try again.",
-                "sources": [],
-            }
+        return await self.provider.generate(
+            system_prompt=system_prompt,
+            user_message=user_message,
+            context_chunks=context_chunks,
+            temperature=temperature,
+        )
 
     async def generate_stream(
         self,
@@ -91,59 +66,16 @@ class LLMGenerator:
         temperature: float = 0.1,
     ):
         """Generate a streaming response."""
-        from app.rag.context import build_context
-        context_str = build_context(context_chunks)
-
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": f"Context:\n{context_str}\n\nQuestion: {user_message}"}
-        ]
-
-        stream = await self.client.chat.completions.create(
-            model=self.model,
-            messages=messages,
-            stream=True,
+        async for chunk in self.provider.generate_stream(
+            system_prompt=system_prompt,
+            user_message=user_message,
+            context_chunks=context_chunks,
             temperature=temperature,
-        )
-        async for chunk in stream:
-            if chunk.choices and chunk.choices[0].delta.content:
-                yield chunk.choices[0].delta.content
-
-    def _extract_citations(self, text: str, chunks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Extract source citations referenced in the answer text."""
-        sources = []
-        seen = set()
-
-        # Find all [source_N] references
-        matches = re.findall(r'\[source_(\d+)\]', text, re.IGNORECASE)
-        # Also match [1], [2], etc. as fallback
-        if not matches:
-            matches = re.findall(r'\[(\d+)\]', text)
-
-        for m in matches:
-            try:
-                idx = int(m) - 1
-                if 0 <= idx < len(chunks) and idx not in seen:
-                    seen.add(idx)
-                    payload = chunks[idx].get("payload", {})
-                    sources.append({
-                        "source_id": f"source_{idx + 1}",
-                        "document_id": payload.get("document_id", 0),
-                        "document_title": payload.get("document_title", ""),
-                        "page_number": payload.get("page_number"),
-                        "section": payload.get("section"),
-                        "excerpt": payload.get("text", "")[:500],
-                    })
-            except (ValueError, IndexError):
-                pass
-
-        return sources
+        ):
+            yield chunk
 
 
 def get_llm_generator() -> LLMGenerator:
-    settings = get_settings()
-    return LLMGenerator(
-        api_key=settings.LLM_API_KEY,
-        base_url=settings.LLM_BASE_URL,
-        model=settings.LLM_MODEL,
-    )
+    """Get LLM generator with configured provider."""
+    provider = get_llm_provider()
+    return LLMGenerator(provider=provider)

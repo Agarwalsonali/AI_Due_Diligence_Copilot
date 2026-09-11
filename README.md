@@ -36,7 +36,7 @@ FastAPI backend (port 8000) ---- PostgreSQL (port 5432)
 ## Prerequisites
 
 - Docker Desktop with Docker Compose
-- An API key for the OpenAI-compatible LLM service configured in `LLM_API_KEY`
+- A Google Gemini API key (free tier available)
 
 For non-Docker development, install Python 3.12+, Node.js 20+, PostgreSQL, and Qdrant separately.
 
@@ -44,29 +44,73 @@ For non-Docker development, install Python 3.12+, Node.js 20+, PostgreSQL, and Q
 
 The repository includes `.env.example`. Create or update a root `.env` file before starting the backend:
 
+### Getting a Gemini API Key
+
+1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Sign in with your Google account
+3. Click "Create API Key"
+4. Copy your API key
+
+The Gemini API free tier provides generous limits suitable for development and demonstration purposes.
+
+### Environment Variables
+
 ```env
+# Database
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
 POSTGRES_DB=due_diligence
 DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/due_diligence
 
+# Qdrant
 QDRANT_URL=http://qdrant:6333
 QDRANT_COLLECTION=documents
 
-LLM_API_KEY=your-api-key-here
+# LLM Provider Configuration
+LLM_PROVIDER=gemini
+
+# Gemini Configuration (Default Provider)
+GEMINI_API_KEY=your-gemini-api-key-here
+GEMINI_MODEL=gemini-1.5-flash
+
+# OpenAI Configuration (Optional - for backward compatibility)
+LLM_API_KEY=
 LLM_BASE_URL=https://api.openai.com/v1
 LLM_MODEL=gpt-4o-mini
+
+# Embeddings (still uses OpenAI-compatible endpoint)
 EMBEDDING_MODEL=text-embedding-3-small
 EMBEDDING_DIMENSIONS=1536
 
+# Auth
 JWT_SECRET=replace-with-a-long-random-secret
 JWT_ALGORITHM=HS256
 JWT_EXPIRATION_MINUTES=1440
 
+# App
 CORS_ORIGINS=http://localhost:3000
 UPLOAD_DIR=data/uploads
 MAX_FILE_SIZE_MB=50
 ```
+
+### LLM Provider Options
+
+The application supports multiple LLM providers through a provider abstraction layer:
+
+- **gemini** (default): Uses Google Gemini API with free tier support
+- **openai**: Uses OpenAI API (requires OpenAI API key and credits)
+
+To switch providers, set `LLM_PROVIDER=gemini` or `LLM_PROVIDER=openai` in your `.env` file.
+
+### Free Tier Limits
+
+When using the Gemini free tier, the application will gracefully handle rate limits and quota exhaustion. If you encounter usage limits:
+
+1. Wait a few minutes and try again
+2. Consider upgrading to a paid Gemini plan for higher limits
+3. Switch to OpenAI provider if you have OpenAI credits
+
+The application will display a clear message when limits are reached and will not retry indefinitely.
 
 
 ## Run with Docker Compose

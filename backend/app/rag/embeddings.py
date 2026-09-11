@@ -26,7 +26,7 @@ class EmbeddingService:
                 dimensions=self.dimensions
             )
             batch_embeddings = [d.embedding for d in response.data]
-            
+
             # Validate dimensions on first batch
             if i == 0 and batch_embeddings:
                 actual_dim = len(batch_embeddings[0])
@@ -35,7 +35,7 @@ class EmbeddingService:
                         f"Embedding dimension mismatch: expected {self.dimensions}, "
                         f"got {actual_dim}. Check EMBEDDING_DIMENSIONS env var."
                     )
-            
+
             embeddings.extend(batch_embeddings)
             logger.info("embedded_batch", batch_index=i // batch_size, batch_size=len(batch), total=len(embeddings))
 
@@ -53,9 +53,20 @@ class EmbeddingService:
 
 def get_embedding_service() -> EmbeddingService:
     settings = get_settings()
+    # For embeddings, we still use OpenAI-compatible endpoint
+    # Use LLM_API_KEY if available, otherwise use GEMINI_API_KEY (for compatibility)
+    api_key = settings.LLM_API_KEY if settings.LLM_API_KEY else settings.GEMINI_API_KEY
+    base_url = settings.LLM_BASE_URL
+    
+    if not api_key:
+        raise ValueError(
+            "Either LLM_API_KEY or GEMINI_API_KEY is required for embeddings. "
+            "Please set one of these in your environment variables."
+        )
+    
     return EmbeddingService(
-        api_key=settings.LLM_API_KEY,
-        base_url=settings.LLM_BASE_URL,
+        api_key=api_key,
+        base_url=base_url,
         model=settings.EMBEDDING_MODEL,
         dimensions=settings.EMBEDDING_DIMENSIONS
     )

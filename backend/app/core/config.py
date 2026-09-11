@@ -11,11 +11,20 @@ class Settings(BaseSettings):
     QDRANT_URL: str
     QDRANT_COLLECTION: str
 
-    # LLM
-    LLM_API_KEY: str
-    LLM_BASE_URL: str
-    LLM_MODEL: str
-    EMBEDDING_MODEL: str
+    # LLM Provider Configuration
+    LLM_PROVIDER: str = "gemini"  # Options: gemini, openai
+
+    # Gemini Configuration
+    GEMINI_API_KEY: str = ""
+    GEMINI_MODEL: str = "gemini-1.5-flash"
+
+    # OpenAI Configuration (for backward compatibility)
+    LLM_API_KEY: str = ""
+    LLM_BASE_URL: str = "https://api.openai.com/v1"
+    LLM_MODEL: str = "gpt-4o-mini"
+
+    # Embeddings (still using OpenAI-compatible endpoint)
+    EMBEDDING_MODEL: str = "text-embedding-3-small"
     EMBEDDING_DIMENSIONS: int = 1536
 
     # Auth
