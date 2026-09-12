@@ -23,9 +23,14 @@ class Settings(BaseSettings):
     LLM_BASE_URL: str = "https://api.openai.com/v1"
     LLM_MODEL: str = "gpt-4o-mini"
 
-    # Embeddings (still using OpenAI-compatible endpoint)
-    EMBEDDING_MODEL: str = "text-embedding-3-small"
-    EMBEDDING_DIMENSIONS: int = 1536
+    # Embedding Provider Configuration
+    EMBEDDING_PROVIDER: str = "local"  # Options: local, openai
+
+    # Local Embedding Configuration
+    EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"  # Default local model
+
+    # OpenAI Embedding Configuration (for backward compatibility)
+    EMBEDDING_DIMENSIONS: int = 1536  # Only used for OpenAI embeddings
 
     # Auth
     JWT_SECRET: str

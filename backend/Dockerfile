@@ -8,7 +8,9 @@ RUN apt-get update && apt-get install -y \
 
 COPY requirements.txt .
 
-RUN pip install --no-cache-dir --default-timeout=300 --retries=5 -r requirements.txt
+# Install torch with CPU-only version to reduce image size
+RUN pip install --no-cache-dir --default-timeout=300 --retries=5 torch --index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir --default-timeout=300 --retries=5 -r requirements.txt
 
 COPY . .
 

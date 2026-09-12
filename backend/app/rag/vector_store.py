@@ -19,10 +19,13 @@ class VectorStore:
         self.ensure_collection()
 
     def ensure_collection(self):
-        """Create the collection and payload indexes if they don't exist."""
+        """Create the collection and payload indexes if they don't exist, or recreate if dimension changed."""
         try:
             collections = self.client.get_collections().collections
-            if not any(c.name == self.collection_name for c in collections):
+            existing_collection = next((c for c in collections if c.name == self.collection_name), None)
+
+            if existing_collection is None:
+                # Create new collection
                 self.client.create_collection(
                     collection_name=self.collection_name,
                     vectors_config=VectorParams(size=self.vector_size, distance=Distance.COSINE),
@@ -31,7 +34,29 @@ class VectorStore:
                 self.client.create_payload_index(self.collection_name, "document_id", "integer")
                 logger.info("collection_created", collection=self.collection_name, vector_size=self.vector_size)
             else:
-                logger.info("collection_exists", collection=self.collection_name)
+                # Check if dimension matches
+                collection_info = self.client.get_collection(self.collection_name)
+                current_size = collection_info.config.params.vectors.size
+                
+                if current_size != self.vector_size:
+                    logger.warning(
+                        "dimension_mismatch",
+                        collection=self.collection_name,
+                        current_size=current_size,
+                        new_size=self.vector_size,
+                        action="recreating_collection"
+                    )
+                    # Recreate collection with new dimension
+                    self.client.delete_collection(self.collection_name)
+                    self.client.create_collection(
+                        collection_name=self.collection_name,
+                        vectors_config=VectorParams(size=self.vector_size, distance=Distance.COSINE),
+                    )
+                    self.client.create_payload_index(self.collection_name, "company_id", "integer")
+                    self.client.create_payload_index(self.collection_name, "document_id", "integer")
+                    logger.info("collection_recreated", collection=self.collection_name, vector_size=self.vector_size)
+                else:
+                    logger.info("collection_exists", collection=self.collection_name, vector_size=current_size)
         except Exception as e:
             logger.error("qdrant_collection_init_failed", error=str(e))
             raise
@@ -94,9 +119,15 @@ class VectorStore:
 
 
 def get_vector_store() -> VectorStore:
+    from app.services.embeddings import get_embedding_provider
     settings = get_settings()
+    
+    # Get actual dimension from embedding provider
+    embedding_provider = get_embedding_provider()
+    vector_size = embedding_provider.get_dimension()
+    
     return VectorStore(
         url=settings.QDRANT_URL,
         collection_name=settings.QDRANT_COLLECTION,
-        vector_size=settings.EMBEDDING_DIMENSIONS,
+        vector_size=vector_size,
     )

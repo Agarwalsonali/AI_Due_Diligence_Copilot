@@ -72,3 +72,30 @@ async def delete_document_endpoint(
     """Delete a document and its vectors from Qdrant."""
     await delete_document(id, db)
     return {"message": "Document deleted successfully."}
+
+
+@router.post("/{id}/reprocess")
+async def reprocess_document_endpoint(
+    id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Reprocess a failed document (e.g., after fixing embedding configuration)."""
+    from app.database.models import Document
+    from app.rag.loader import process_document
+    
+    doc = await db.get(Document, id)
+    if not doc:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    # Reset processing status
+    doc.processing_status = "uploaded"
+    doc.error_message = None
+    await db.commit()
+    
+    # Start background processing
+    import asyncio
+    asyncio.create_task(process_document(doc.id, async_session_maker))
+    
+    return {"message": "Document reprocessing started.", "document_id": id}
