@@ -71,7 +71,7 @@ LLM_PROVIDER=gemini
 
 # Gemini Configuration (Default Provider)
 GEMINI_API_KEY=your-gemini-api-key-here
-GEMINI_MODEL=gemini-1.5-flash
+GEMINI_MODEL=gemini-2.5-flash
 
 # OpenAI Configuration (Optional - for backward compatibility)
 LLM_API_KEY=

@@ -16,7 +16,7 @@ class Settings(BaseSettings):
 
     # Gemini Configuration
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-1.5-flash"
+    GEMINI_MODEL: str = "gemini-2.5-flash"
 
     # OpenAI Configuration (for backward compatibility)
     LLM_API_KEY: str = ""
