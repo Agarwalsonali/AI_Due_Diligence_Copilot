@@ -37,9 +37,26 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "data/uploads"
     MAX_FILE_SIZE_MB: int = 50
 
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(env_file=(".env", "../.env"), extra="ignore")
 
-settings = Settings()
+def _rewrite_docker_urls(settings: Settings) -> Settings:
+    """Rewrite Docker hostnames to localhost for local development."""
+    import socket
+    for host in ['postgres', 'qdrant']:
+        try:
+            socket.getaddrinfo(host, 80, socket.AF_INET)
+            # hostname resolves — Docker environment, keep as-is
+            return settings
+        except (socket.gaierror, OSError):
+            pass
+    # hostname doesn't resolve — rewrite to localhost
+    if '@postgres:' in settings.DATABASE_URL:
+        settings.DATABASE_URL = settings.DATABASE_URL.replace('@postgres:', '@localhost:', 1)
+    if 'qdrant:' in settings.QDRANT_URL:
+        settings.QDRANT_URL = settings.QDRANT_URL.replace('qdrant:', 'localhost:', 1)
+    return settings
+
+settings = _rewrite_docker_urls(Settings())
 
 def get_settings() -> Settings:
     return settings
