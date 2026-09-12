@@ -34,7 +34,7 @@ INSUFFICIENT_EVIDENCE_MSG = (
 )
 
 
-@router.post("/", response_model=ChatResponse)
+@router.post("", response_model=ChatResponse)
 async def chat(
     request: ChatRequest,
     db: AsyncSession = Depends(get_db),

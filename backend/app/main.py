@@ -39,7 +39,7 @@ app = FastAPI(
     description="Backend API for AI Due Diligence Copilot",
     version="1.0.0",
     lifespan=lifespan,
-    redirect_slashes=False,
+    redirect_slashes=True,
 )
 
 # Inner middleware first, CORS last (so it wraps everything)

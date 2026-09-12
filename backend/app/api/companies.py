@@ -12,7 +12,7 @@ logger = get_logger("companies_api")
 
 router = APIRouter(prefix="/api/companies", tags=["companies"])
 
-@router.post("/", response_model=CompanyResponse)
+@router.post("", response_model=CompanyResponse)
 async def create_company_endpoint(
     data: CompanyCreate, 
     db: AsyncSession = Depends(get_db), 
@@ -20,7 +20,7 @@ async def create_company_endpoint(
 ):
     return await create_company(data, user.id, db)
 
-@router.get("/")
+@router.get("")
 async def list_companies(
     search: str = None, 
     db: AsyncSession = Depends(get_db), 

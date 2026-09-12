@@ -12,7 +12,7 @@ from typing import List
 
 router = APIRouter(prefix="/api/reports", tags=["reports"])
 
-@router.get("/", response_model=List[ReportResponse])
+@router.get("", response_model=List[ReportResponse])
 async def list_reports(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),

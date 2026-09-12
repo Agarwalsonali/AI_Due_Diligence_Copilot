@@ -102,7 +102,7 @@ export const documentAPI = {
 // ─── Chat API ────────────────────────────────────────────────────────────────
 export const chatAPI = {
   send: (data: { message: string; company_id?: number; document_id?: number; session_id?: number }) =>
-    api.post("/chat/", data).then(r => r.data),
+    api.post("/chat", data).then(r => r.data),
   sessions: () => api.get("/chat/sessions").then(r => r.data),
   session: (id: number) => api.get(`/chat/sessions/${id}`).then(r => r.data),
   deleteSession: (id: number) => api.delete(`/chat/sessions/${id}`).then(r => r.data),
@@ -128,7 +128,7 @@ export const analysisAPI = {
 
 // ─── Report API ──────────────────────────────────────────────────────────────
 export const reportAPI = {
-  list: () => api.get("/reports/").then(r => r.data),
+  list: () => api.get("/reports").then(r => r.data),
   generate: (companyId: number) =>
     api.post("/reports/generate", { company_id: companyId }).then(r => r.data),
   get: (id: number) => api.get(`/reports/${id}`).then(r => r.data),
