@@ -3,14 +3,16 @@
 from app.core.config import get_settings
 from app.core.logging import get_logger
 from .base import BaseEmbeddingProvider
-from .local import LocalEmbeddingProvider
-from .openai import OpenAIEmbeddingProvider
 
 logger = get_logger("embedding_factory")
 
+# Cached singleton — loading a sentence-transformers model is expensive (~seconds)
+# and must not happen on every request.
+_embedding_provider: BaseEmbeddingProvider | None = None
+
 
 def get_embedding_provider() -> BaseEmbeddingProvider:
-    """Get embedding provider based on configuration.
+    """Get (and cache) the embedding provider based on configuration.
 
     Returns:
         BaseEmbeddingProvider: Configured embedding provider instance
@@ -18,17 +20,23 @@ def get_embedding_provider() -> BaseEmbeddingProvider:
     Raises:
         ValueError: If provider configuration is invalid
     """
+    global _embedding_provider
+    if _embedding_provider is not None:
+        return _embedding_provider
+
     settings = get_settings()
     provider = getattr(settings, "EMBEDDING_PROVIDER", "local").lower()
 
     if provider == "local":
+        from .local import LocalEmbeddingProvider
         model = getattr(settings, "EMBEDDING_MODEL", "all-MiniLM-L6-v2")
         logger.info("using_local_embedding_provider", model=model)
-        return LocalEmbeddingProvider(model_name=model)
+        _embedding_provider = LocalEmbeddingProvider(model_name=model)
 
     elif provider == "openai":
+        from .openai import OpenAIEmbeddingProvider
         # Validate OpenAI configuration
-        if not hasattr(settings, "LLM_API_KEY") or not settings.LLM_API_KEY:
+        if not getattr(settings, "LLM_API_KEY", None):
             raise ValueError(
                 "LLM_API_KEY is required when EMBEDDING_PROVIDER=openai. "
                 "Please set LLM_API_KEY in your environment variables."
@@ -39,7 +47,7 @@ def get_embedding_provider() -> BaseEmbeddingProvider:
         dimensions = getattr(settings, "EMBEDDING_DIMENSIONS", 1536)
 
         logger.info("using_openai_embedding_provider", model=model, dimensions=dimensions)
-        return OpenAIEmbeddingProvider(
+        _embedding_provider = OpenAIEmbeddingProvider(
             api_key=settings.LLM_API_KEY,
             base_url=base_url,
             model=model,
@@ -51,3 +59,5 @@ def get_embedding_provider() -> BaseEmbeddingProvider:
             f"Unsupported embedding provider: {provider}. "
             "Supported providers: local, openai"
         )
+
+    return _embedding_provider

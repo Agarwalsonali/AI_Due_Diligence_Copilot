@@ -2,10 +2,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.core.logging import configure_logging, RequestIDMiddleware
+from app.core.logging import configure_logging, get_logger, RequestIDMiddleware
 from app.database.database import init_db
-from qdrant_client import AsyncQdrantClient
-from qdrant_client.http import models
+
+logger = get_logger("main")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -15,23 +15,15 @@ async def lifespan(app: FastAPI):
     # Initialize DB
     await init_db()
     
-    # Initialize Qdrant Collection
-    qdrant_client = AsyncQdrantClient(url=settings.QDRANT_URL)
+    # Ensure Qdrant collection exists with the dimension of the configured
+    # embedding provider (VectorStore.ensure_collection also self-heals on
+    # dimension change, so we keep this lightweight and consistent).
     try:
-        collections = await qdrant_client.get_collections()
-        collection_names = [c.name for c in collections.collections]
-        if settings.QDRANT_COLLECTION not in collection_names:
-            await qdrant_client.create_collection(
-                collection_name=settings.QDRANT_COLLECTION,
-                vectors_config=models.VectorParams(
-                    size=settings.EMBEDDING_DIMENSIONS,
-                    distance=models.Distance.COSINE
-                )
-            )
+        from app.rag.vector_store import get_vector_store
+        get_vector_store()
     except Exception as e:
-        print(f"Error initializing Qdrant: {e}")
-        pass
-    
+        logger.warning("qdrant_init_failed", error=str(e))
+
     yield
 
 app = FastAPI(

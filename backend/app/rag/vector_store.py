@@ -118,16 +118,26 @@ class VectorStore:
         return self.client.get_collection(self.collection_name).model_dump()
 
 
+_vector_store: VectorStore | None = None
+
+
 def get_vector_store() -> VectorStore:
     from app.services.embeddings import get_embedding_provider
     settings = get_settings()
-    
+
+    # Cached singleton — reusing one client avoids re-checking/recreating
+    # the collection on every request.
+    global _vector_store
+    if _vector_store is not None:
+        return _vector_store
+
     # Get actual dimension from embedding provider
     embedding_provider = get_embedding_provider()
     vector_size = embedding_provider.get_dimension()
-    
-    return VectorStore(
+
+    _vector_store = VectorStore(
         url=settings.QDRANT_URL,
         collection_name=settings.QDRANT_COLLECTION,
         vector_size=vector_size,
     )
+    return _vector_store
