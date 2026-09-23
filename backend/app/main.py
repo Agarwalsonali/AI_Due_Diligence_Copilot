@@ -64,3 +64,12 @@ app.include_router(reports_router)
 @app.get("/api/health", tags=["Health"])
 async def health_check():
     return {"status": "ok", "message": "Service is running"}
+
+@app.get("/.well-known/appspecific/com.chrome.devtools.json", include_in_schema=False)
+async def chrome_devtools_well_known():
+    """Chrome/DevTools probes this path for workspace discovery.
+
+    Answer with an empty (valid) payload instead of 404 so the probe
+    doesn't show up as an error in logs/preview.
+    """
+    return {"applications": {}}
