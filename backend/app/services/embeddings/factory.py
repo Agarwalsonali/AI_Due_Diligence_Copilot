@@ -39,12 +39,18 @@ def get_embedding_provider() -> BaseEmbeddingProvider:
         if not getattr(settings, "LLM_API_KEY", None):
             raise ValueError(
                 "LLM_API_KEY is required when EMBEDDING_PROVIDER=openai. "
-                "Please set LLM_API_KEY in your environment variables."
+                "Provide it via LLM_API_KEY in your environment variables."
             )
 
         base_url = getattr(settings, "LLM_BASE_URL", "https://api.openai.com/v1")
         model = getattr(settings, "EMBEDDING_MODEL", "text-embedding-3-small")
         dimensions = getattr(settings, "EMBEDDING_DIMENSIONS", 1536)
+        if model in ("all-MiniLM-L6-v2", "sentence-transformers/all-MiniLM-L6-v2"):
+            raise ValueError(
+                f"EMBEDDING_MODEL '{model}' is a local sentence-transformers model and "
+                "cannot be used with EMBEDDING_PROVIDER=openai. Set EMBEDDING_MODEL to an "
+                "OpenAI embedding model such as 'text-embedding-3-small'."
+            )
 
         logger.info("using_openai_embedding_provider", model=model, dimensions=dimensions)
         _embedding_provider = OpenAIEmbeddingProvider(

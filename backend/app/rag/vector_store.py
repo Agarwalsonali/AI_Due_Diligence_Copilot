@@ -90,13 +90,14 @@ class VectorStore:
 
         query_filter = Filter(must=conditions) if conditions else None
 
-        results = self.client.search(
+        # qdrant-client >= 1.10 removed QdrantClient.search(); use query_points().
+        results = self.client.query_points(
             collection_name=self.collection_name,
-            query_vector=query_vector,
+            query=query_vector,
             query_filter=query_filter,
             limit=limit,
-        )
-        return [{"payload": res.payload, "score": res.score} for res in results]
+        ).points
+        return [{"payload": p.payload, "score": p.score} for p in results]
 
     def delete_by_document(self, document_id: int):
         """Delete all vectors belonging to a document."""

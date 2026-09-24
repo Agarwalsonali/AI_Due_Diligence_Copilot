@@ -1,7 +1,8 @@
+import os
 import uuid
 import traceback
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from app.database.models import Document, DocumentChunk, Company
 from app.rag.parser import parse_document
 from app.rag.chunker import chunk_document
@@ -24,7 +25,20 @@ async def process_document(document_id: int, db_session_factory):
 
             logger.info("processing_started", document_id=document_id, file_name=doc.file_name)
             doc.processing_status = 'processing'
+            doc.error_message = None
             await db.commit()
+
+            # Reprocessing must be idempotent: clear any vectors and chunks
+            # left over from a previous attempt before ingesting again.
+            vector_store = get_vector_store()
+            vector_store.delete_by_document(document_id)
+            await db.execute(delete(DocumentChunk).where(DocumentChunk.document_id == document_id))
+            await db.commit()
+
+            if not doc.file_path or not os.path.exists(doc.file_path):
+                raise FileNotFoundError(
+                    f"Stored file is missing at {doc.file_path}. Please re-upload the document."
+                )
 
             # Fetch company name for citation metadata
             company = await db.get(Company, doc.company_id)
@@ -61,7 +75,6 @@ async def process_document(document_id: int, db_session_factory):
             logger.info("embeddings_complete", document_id=document_id, vector_count=len(vectors))
 
             # Step 4: Store in Qdrant and DB
-            vector_store = get_vector_store()
             qdrant_chunks = []
             db_chunks = []
 
