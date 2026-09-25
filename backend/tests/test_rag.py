@@ -337,7 +337,7 @@ class TestCitationExtraction:
 
     def test_extract_source_N_format(self):
         from app.rag.generator import LLMGenerator
-        gen = LLMGenerator(api_key="fake", base_url="fake", model="fake")
+        gen = LLMGenerator(provider=MagicMock())
         chunks = [
             make_chunk("Revenue was 60B", doc_id=1, page=42),
             make_chunk("Risks include X", doc_id=1, page=10),
@@ -350,7 +350,7 @@ class TestCitationExtraction:
 
     def test_extract_number_format(self):
         from app.rag.generator import LLMGenerator
-        gen = LLMGenerator(api_key="fake", base_url="fake", model="fake")
+        gen = LLMGenerator(provider=MagicMock())
         chunks = [make_chunk("Revenue was 60B", doc_id=1, page=42)]
         text = "Revenue was 60B [1]."
         sources = gen._extract_citations(text, chunks)
@@ -358,7 +358,7 @@ class TestCitationExtraction:
 
     def test_extract_no_citations(self):
         from app.rag.generator import LLMGenerator
-        gen = LLMGenerator(api_key="fake", base_url="fake", model="fake")
+        gen = LLMGenerator(provider=MagicMock())
         chunks = [make_chunk("Revenue was 60B", doc_id=1, page=42)]
         text = "Revenue was 60 billion dollars."
         sources = gen._extract_citations(text, chunks)
@@ -366,7 +366,7 @@ class TestCitationExtraction:
 
     def test_extract_deduplicates(self):
         from app.rag.generator import LLMGenerator
-        gen = LLMGenerator(api_key="fake", base_url="fake", model="fake")
+        gen = LLMGenerator(provider=MagicMock())
         chunks = [make_chunk("Revenue", doc_id=1, page=42)]
         text = "Revenue [source_1] and again [source_1]."
         sources = gen._extract_citations(text, chunks)
@@ -374,7 +374,7 @@ class TestCitationExtraction:
 
     def test_extract_out_of_range_ignored(self):
         from app.rag.generator import LLMGenerator
-        gen = LLMGenerator(api_key="fake", base_url="fake", model="fake")
+        gen = LLMGenerator(provider=MagicMock())
         chunks = [make_chunk("Revenue", doc_id=1, page=42)]
         text = "Revenue [source_99]."
         sources = gen._extract_citations(text, chunks)

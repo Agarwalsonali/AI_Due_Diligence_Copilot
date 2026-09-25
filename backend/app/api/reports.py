@@ -36,11 +36,15 @@ async def get_report(id: int, db: AsyncSession = Depends(get_db), user: User = D
     report = await db.get(Report, id)
     if not report:
         raise HTTPException(status_code=404, detail="Report not found.")
+    if report.user_id != user.id:
+        raise HTTPException(status_code=403, detail="Access denied.")
     return ReportResponse.model_validate(report)
 
 @router.get("/{id}/download")
 async def download_report(id: int, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
     report = await db.get(Report, id)
-    if report and os.path.exists(report.file_path):
+    if not report or report.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Report not found.")
+    if report.file_path and os.path.exists(report.file_path):
         return FileResponse(report.file_path, filename=f"report_{id}.pdf")
-    return {"message": "File not found"}
+    raise HTTPException(status_code=404, detail="Report file not found.")

@@ -60,7 +60,7 @@ async def get_document_endpoint(
     user: User = Depends(get_current_user),
 ):
     """Get document details including processing status."""
-    return await get_document(id, db)
+    return await get_document(id, user.id, db)
 
 
 @router.delete("/{id}")
@@ -70,7 +70,7 @@ async def delete_document_endpoint(
     user: User = Depends(get_current_user),
 ):
     """Delete a document and its vectors from Qdrant."""
-    await delete_document(id, db)
+    await delete_document(id, user.id, db)
     return {"message": "Document deleted successfully."}
 
 
@@ -83,11 +83,13 @@ async def reprocess_document_endpoint(
     """Reprocess a failed document (e.g., after fixing embedding configuration)."""
     from app.database.models import Document
     from app.rag.loader import process_document
-    
+
     doc = await db.get(Document, id)
     if not doc:
         from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Document not found")
+    if doc.user_id != user.id:
+        raise HTTPException(status_code=403, detail="Access denied.")
     
     # Reset processing status
     doc.processing_status = "uploaded"

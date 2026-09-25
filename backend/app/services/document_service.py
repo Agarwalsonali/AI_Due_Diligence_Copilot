@@ -114,17 +114,21 @@ async def get_documents(company_id: int | None, user_id: int, db: AsyncSession) 
     return result.scalars().all()
 
 
-async def get_document(document_id: int, db: AsyncSession) -> Document:
+async def get_document(document_id: int, user_id: int, db: AsyncSession) -> Document:
     doc = await db.get(Document, document_id)
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
+    if doc.user_id != user_id:
+        raise HTTPException(status_code=403, detail="Access denied.")
     return doc
 
 
-async def delete_document(document_id: int, db: AsyncSession):
+async def delete_document(document_id: int, user_id: int, db: AsyncSession):
     doc = await db.get(Document, document_id)
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
+    if doc.user_id != user_id:
+        raise HTTPException(status_code=403, detail="Access denied.")
 
     # 1. Remove vectors from Qdrant
     try:

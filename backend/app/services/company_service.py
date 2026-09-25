@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from app.database.models import Company, Document
@@ -28,16 +29,22 @@ async def get_companies(search: str | None, user_id: int, db: AsyncSession) -> l
 
     return companies
 
-async def get_company(company_id: int, db: AsyncSession) -> Company:
+async def get_company(company_id: int, user_id: int, db: AsyncSession) -> Company:
     company = await db.get(Company, company_id)
-    if company:
-        count_stmt = select(func.count(Document.id)).where(Document.company_id == company.id)
-        count_result = await db.execute(count_stmt)
-        company.document_count = count_result.scalar() or 0
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found.")
+    if company.created_by != user_id:
+        raise HTTPException(status_code=403, detail="Access denied.")
+    count_stmt = select(func.count(Document.id)).where(Document.company_id == company.id)
+    count_result = await db.execute(count_stmt)
+    company.document_count = count_result.scalar() or 0
     return company
 
-async def delete_company(company_id: int, db: AsyncSession):
+async def delete_company(company_id: int, user_id: int, db: AsyncSession):
     company = await db.get(Company, company_id)
-    if company:
-        await db.delete(company)
-        await db.commit()
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found.")
+    if company.created_by != user_id:
+        raise HTTPException(status_code=403, detail="Access denied.")
+    await db.delete(company)
+    await db.commit()

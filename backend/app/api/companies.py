@@ -34,7 +34,7 @@ async def get_company_endpoint(
     db: AsyncSession = Depends(get_db), 
     user: User = Depends(get_current_user)
 ):
-    return await get_company(id, db)
+    return await get_company(id, user.id, db)
 
 @router.delete("/{id}")
 async def delete_company_endpoint(
@@ -42,7 +42,7 @@ async def delete_company_endpoint(
     db: AsyncSession = Depends(get_db), 
     user: User = Depends(get_current_user)
 ):
-    await delete_company(id, db)
+    await delete_company(id, user.id, db)
     return {"message": "Deleted"}
 
 

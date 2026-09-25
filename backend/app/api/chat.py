@@ -85,14 +85,17 @@ async def chat(
     await db.commit()
 
     # --- Build conversation history for query rewriting ---
+    # Fetch the most recent messages BEFORE the current one, oldest-first,
+    # so the window used for query rewriting contains the latest context.
     history_stmt = (
         select(ChatMessage)
         .where(ChatMessage.session_id == session_id)
-        .order_by(ChatMessage.created_at)
-        .limit(10)
+        .order_by(ChatMessage.created_at.desc(), ChatMessage.id.desc())
+        .limit(6)
     )
     history_result = await db.execute(history_stmt)
-    history_msgs = history_result.scalars().all()
+    history_msgs = list(history_result.scalars().all())
+    history_msgs.reverse()  # oldest → newest
     conversation_history = [{"role": m.role, "content": m.content} for m in history_msgs[:-1]]
 
     # --- Retrieve company name for query rewriting ---
