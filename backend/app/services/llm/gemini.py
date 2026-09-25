@@ -1,5 +1,6 @@
 """Gemini LLM provider implementation."""
 
+import asyncio
 import google.genai
 from google.genai import types
 from typing import List, Dict, Any, AsyncIterator
@@ -38,14 +39,43 @@ class GeminiProvider(BaseLLMProvider):
         full_prompt = f"{system_prompt}\n\nContext:\n{context_str}\n\nQuestion: {user_message}"
 
         try:
-            # Generate response using Gemini
-            response = self.client.models.generate_content(
-                model=self.model,
-                contents=full_prompt,
-                config=types.GenerateContentConfig(
-                    temperature=temperature,
-                )
-            )
+            # Generate response using Gemini, with retry + exponential backoff
+            # for transient errors (503 high demand, 429 quota, deadlines).
+            attempts = 5
+            delay = 2.0
+            response = None
+            for attempt in range(1, attempts + 1):
+                try:
+                    response = self.client.models.generate_content(
+                        model=self.model,
+                        contents=full_prompt,
+                        config=types.GenerateContentConfig(
+                            temperature=temperature,
+                        )
+                    )
+                    break
+                except google.genai.errors.APIError as e:
+                    msg = str(e).lower()
+                    retryable = any(
+                        marker in msg
+                        for marker in ("503", "429", "unavailable", "high demand", "overload", "deadline", "rate")
+                    )
+                    if retryable and attempt < attempts:
+                        import random
+                        jittered = delay * (1 + random.random() * 0.3)
+                        logger.warning(
+                            "gemini_retry",
+                            attempt=attempt,
+                            next_delay_seconds=round(jittered, 1),
+                            error=str(e)[:160],
+                        )
+                        await asyncio.sleep(jittered)
+                        delay = min(delay * 2, 20.0)
+                        continue
+                    raise
+
+            if response is None:
+                raise RuntimeError("Gemini generation failed after retries")
 
             answer = response.text if response.text else ""
             sources = self._extract_citations(answer, context_chunks)

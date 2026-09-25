@@ -47,8 +47,9 @@ def _rrf_fusion(
         if key in fused:
             fused[key]["score"] += rrf_score
             fused[key]["_methods"].add(res.get("retrieval_method", "vector"))
+            fused[key]["retrieval_score"] = max(fused[key].get("retrieval_score", 0.0), res.get("score", 0.0))
         else:
-            fused[key] = {**res, "score": rrf_score, "_methods": {res.get("retrieval_method", "vector")}}
+            fused[key] = {**res, "score": rrf_score, "retrieval_score": res.get("score", 0.0), "_methods": {res.get("retrieval_method", "vector")}}
 
     # Score BM25 results by rank
     for rank, res in enumerate(bm25_results):
@@ -57,11 +58,19 @@ def _rrf_fusion(
         if key in fused:
             fused[key]["score"] += rrf_score
             fused[key]["_methods"].add(res.get("retrieval_method", "bm25"))
+            fused[key]["retrieval_score"] = max(fused[key].get("retrieval_score", 0.0), res.get("score", 0.0))
         else:
-            fused[key] = {**res, "score": rrf_score, "_methods": {res.get("retrieval_method", "bm25")}}
+            fused[key] = {**res, "score": rrf_score, "retrieval_score": res.get("score", 0.0), "_methods": {res.get("retrieval_method", "bm25")}}
 
-    # Sort by fused score
+    # Sort by fused score (rank-based RRF ordering)
     results = sorted(fused.values(), key=lambda x: x["score"], reverse=True)
+
+    # Restore the original retrieval score (cosine / normalized BM25, both 0-1)
+    # so downstream rerankers and relevance thresholds work on an absolute
+    # relevance signal, not on the tiny RRF rank scores.
+    for r in results:
+        if "retrieval_score" in r:
+            r["score"] = r.pop("retrieval_score")
 
     # Add retrieval_method tag
     for r in results:

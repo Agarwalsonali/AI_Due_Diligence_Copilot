@@ -293,7 +293,20 @@ class TestHybridRetrieval:
         vector = [make_chunk("A", score=0.9, doc_id=1, page=1)]
         result = _rrf_fusion(vector, [])
         assert len(result) == 1
-        assert result[0]["score"] > 0
+        # score is restored to the original retrieval score after fusion
+        assert result[0]["score"] == 0.9
+
+    def test_rrf_fusion_deduplicates(self):
+        from app.rag.hybrid_retriever import _rrf_fusion
+        # Same text from both vector and BM25 — use correct retrieval_method tags
+        vector = [make_chunk("Same text about revenue", doc_id=1, page=1, score=0.9, retrieval_method="vector")]
+        bm25 = [make_chunk("Same text about revenue", doc_id=1, page=1, score=0.8, retrieval_method="bm25")]
+        result = _rrf_fusion(vector, bm25)
+        # Should be deduped to 1 result
+        assert len(result) == 1
+        assert result[0]["retrieval_method"] == "hybrid"
+        # Score should be restored to the max original retrieval score (0.9 > 0.8)
+        assert result[0]["score"] == 0.9
 
     def test_rrf_fusion_deduplicates(self):
         from app.rag.hybrid_retriever import _rrf_fusion
@@ -313,6 +326,8 @@ class TestHybridRetrieval:
         bm25 = [make_chunk("BM25 result B", doc_id=2, page=2, score=0.8)]
         result = _rrf_fusion(vector, bm25)
         assert len(result) == 2
+        # Both scores restored from their original retrieval scores
+        assert {r["score"] for r in result} == {0.9, 0.8}
 
     def test_rrf_fusion_ranking(self):
         from app.rag.hybrid_retriever import _rrf_fusion
@@ -326,8 +341,10 @@ class TestHybridRetrieval:
             make_chunk("Chunk A", doc_id=1, page=1, score=0.6),
         ]
         result = _rrf_fusion(vector, bm25)
-        # Chunk A should rank first (appears in both)
+        # Chunk A should rank first (appears in both lists — RRF rank-based ordering)
         assert result[0]["payload"]["text"] == "Chunk A"
+        # Its score is restored to the best original retrieval score
+        assert result[0]["score"] == 0.9
 
 
 # ─── Citation Extraction Tests ────────────────────────────────────────────────
@@ -335,9 +352,13 @@ class TestHybridRetrieval:
 class TestCitationExtraction:
     """Tests for extracting source citations from LLM output."""
 
+    def _gen(self):
+        from app.services.llm.gemini import GeminiProvider
+        # Citation extraction is a pure utility on the provider — no API calls.
+        return GeminiProvider(api_key="fake", model="fake")
+
     def test_extract_source_N_format(self):
-        from app.rag.generator import LLMGenerator
-        gen = LLMGenerator(provider=MagicMock())
+        gen = self._gen()
         chunks = [
             make_chunk("Revenue was 60B", doc_id=1, page=42),
             make_chunk("Risks include X", doc_id=1, page=10),
@@ -349,32 +370,28 @@ class TestCitationExtraction:
         assert sources[0]["page_number"] == 42
 
     def test_extract_number_format(self):
-        from app.rag.generator import LLMGenerator
-        gen = LLMGenerator(provider=MagicMock())
+        gen = self._gen()
         chunks = [make_chunk("Revenue was 60B", doc_id=1, page=42)]
         text = "Revenue was 60B [1]."
         sources = gen._extract_citations(text, chunks)
         assert len(sources) == 1
 
     def test_extract_no_citations(self):
-        from app.rag.generator import LLMGenerator
-        gen = LLMGenerator(provider=MagicMock())
+        gen = self._gen()
         chunks = [make_chunk("Revenue was 60B", doc_id=1, page=42)]
         text = "Revenue was 60 billion dollars."
         sources = gen._extract_citations(text, chunks)
         assert sources == []
 
     def test_extract_deduplicates(self):
-        from app.rag.generator import LLMGenerator
-        gen = LLMGenerator(provider=MagicMock())
+        gen = self._gen()
         chunks = [make_chunk("Revenue", doc_id=1, page=42)]
         text = "Revenue [source_1] and again [source_1]."
         sources = gen._extract_citations(text, chunks)
         assert len(sources) == 1
 
     def test_extract_out_of_range_ignored(self):
-        from app.rag.generator import LLMGenerator
-        gen = LLMGenerator(provider=MagicMock())
+        gen = self._gen()
         chunks = [make_chunk("Revenue", doc_id=1, page=42)]
         text = "Revenue [source_99]."
         sources = gen._extract_citations(text, chunks)

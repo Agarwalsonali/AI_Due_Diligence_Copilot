@@ -97,6 +97,10 @@ def chunk_document(
                     "page_number": page.page_number,
                     "section": current_section,
                     "chunk_index": chunk_index,
+                    # The chunk text itself must live in the Qdrant payload —
+                    # retrieval results, context building, and citations all
+                    # read payload["text"] from Qdrant, not from Postgres.
+                    "text": chunk_text,
                 },
             ))
 

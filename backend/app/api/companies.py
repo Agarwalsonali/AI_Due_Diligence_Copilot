@@ -4,7 +4,7 @@ from sqlalchemy import select
 from app.database.database import get_db
 from app.database.models import User, Company, Analysis
 from app.core.security import get_current_user
-from app.database.schemas import CompanyCreate, CompanyResponse, AnalysisRequest
+from app.database.schemas import CompanyCreate, CompanyResponse, AnalysisRequest, DocumentResponse
 from app.services.company_service import create_company, get_companies, get_company, delete_company
 from app.core.logging import get_logger
 
@@ -44,6 +44,30 @@ async def delete_company_endpoint(
 ):
     await delete_company(id, user.id, db)
     return {"message": "Deleted"}
+
+
+@router.get("/{id}/documents", response_model=list[DocumentResponse])
+async def list_company_documents(
+    id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """List all documents for a company (with ownership check)."""
+    from app.database.models import Document
+
+    company = await db.get(Company, id)
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found.")
+    if company.created_by != user.id:
+        raise HTTPException(status_code=403, detail="Access denied.")
+
+    stmt = (
+        select(Document)
+        .where(Document.company_id == id)
+        .order_by(Document.created_at.desc())
+    )
+    result = await db.execute(stmt)
+    return result.scalars().all()
 
 
 @router.get("/{id}/analysis")

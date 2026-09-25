@@ -60,11 +60,17 @@ class BaseLLMProvider(ABC):
         sources = []
         seen = set()
 
-        # Find all [source_N] references
-        matches = re.findall(r'\[source_(\d+)\]', text, re.IGNORECASE)
+        # Collect [source_N] references, including comma-separated groups
+        # like [source_2, source_7, source_8] that LLMs commonly emit.
+        numbers = []
+        for group in re.findall(r'\[(source_\d+(?:\s*,\s*source_\d+)*)\]', text, re.IGNORECASE):
+            numbers.extend(re.findall(r'source_(\d+)', group, re.IGNORECASE))
+        if not numbers:
+            numbers = re.findall(r'\[source_(\d+)\]', text, re.IGNORECASE)
         # Also match [1], [2], etc. as fallback
-        if not matches:
-            matches = re.findall(r'\[(\d+)\]', text)
+        if not numbers:
+            numbers = re.findall(r'\[(\d+)\]', text)
+        matches = numbers
 
         for m in matches:
             try:
