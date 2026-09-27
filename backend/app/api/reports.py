@@ -3,7 +3,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.database.database import get_db
-from app.database.models import User, Report
+from app.database.models import User, Company, Report
 from app.core.security import get_current_user
 from app.database.schemas import ReportGenerateRequest, ReportResponse
 from app.services.report_service import generate_report as generate_report_service
@@ -28,6 +28,12 @@ async def list_reports(
 
 @router.post("/generate")
 async def generate_report(req: ReportGenerateRequest, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+    """Generate a due diligence report for a company the user owns."""
+    company = await db.get(Company, req.company_id)
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found.")
+    if company.created_by != user.id:
+        raise HTTPException(status_code=403, detail="Access denied.")
     report = await generate_report_service(req.company_id, user.id, db)
     return ReportResponse.model_validate(report)
 
