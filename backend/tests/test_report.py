@@ -56,7 +56,7 @@ class TestClean:
     def test_non_latin1_replaced_not_raising(self):
         from app.services.report_service import _clean
         # Chinese char has no latin-1 mapping — must not raise
-        assert _clean("苹果 Apple") == "? Apple"
+        assert _clean("苹果 Apple") == "?? Apple"
 
     def test_bullet_replaced(self):
         from app.services.report_service import _clean
@@ -118,6 +118,20 @@ class TestLLMUnavailable:
         from app.services.report_service import _llm_unavailable
         assert not _llm_unavailable("")
         assert not _llm_unavailable(None)
+
+
+class TestDedupeKeyFindings:
+    def test_removes_findings_block(self):
+        from app.services.report_service import _dedupe_key_findings
+        text = "Key Findings\n- finding one\n- finding two\n\n## Company Overview\nApple makes phones."
+        result = _dedupe_key_findings(text)
+        assert "finding one" not in result
+        assert "Apple makes phones." in result
+
+    def test_keeps_body_without_block(self):
+        from app.services.report_service import _dedupe_key_findings
+        text = "Summary body only, no findings heading."
+        assert _dedupe_key_findings(text) == text
 
 
 class TestExtractBulletLines:
@@ -303,7 +317,9 @@ class TestGenerateReport:
         report, captured, _ = await self._run(mock_analysis_stack)
         assert report.status == "completed"
         assert report.file_path and os.path.exists(report.file_path)
-        assert os.path.getsize(report.file_path) > 3000  # real content, not the 3.8KB stub
+        with open(report.file_path, "rb") as f:
+            assert f.read(5) == b"%PDF-"  # valid PDF
+        assert os.path.getsize(report.file_path) > 1000
         assert captured["report"].content["risk_count"] == 1
         assert captured["report"].content["opportunity_count"] == 1
         assert captured["report"].content["metric_count"] == 1

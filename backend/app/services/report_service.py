@@ -29,6 +29,7 @@ from app.rag.generator import get_llm_generator
 from app.rag.context import build_source_list
 from app.financial.extraction import extract_financial_metrics, get_stored_metrics
 from app.financial.ratios import calculate_all_ratios, build_metrics_by_year
+from app.financial.trends import analyze_trends
 from app.analysis.summary import generate_executive_summary
 from app.analysis.risk import analyze_risks
 from app.analysis.opportunities import analyze_opportunities
@@ -54,7 +55,11 @@ def _llm_unavailable(answer: str) -> bool:
 # ─── PDF helpers ──────────────────────────────────────────────────────────────
 
 class PDFReport:
-    """fpdf2 wrapper with section headings, body text, bullets and tables."""
+    """fpdf2 wrapper with section headings, body text, bullets and tables.
+
+    All incoming text passes through _clean() so fpdf2's latin-1 core
+    fonts never hit unencodable characters.
+    """
 
     def __init__(self, title: str, subtitle: str = ""):
         from fpdf import FPDF
@@ -91,6 +96,7 @@ class PDFReport:
 
     def section(self, name: str):
         """Start a new numbered-style section with a rule underneath."""
+        name = _clean(name)
         self.pdf.ln(2)
         # Start a fresh page if less than ~45mm remains (headings + a few lines)
         if self.pdf.get_y() > self.pdf.page_break_trigger - 45:
@@ -104,20 +110,20 @@ class PDFReport:
     def subheading(self, text: str):
         self.pdf.set_font("Arial", "B", 11)
         self.pdf.set_text_color(60, 60, 60)
-        self.pdf.multi_cell(0, 6, text)
+        self.pdf.multi_cell(0, 6, _clean(text))
         self.pdf.set_text_color(30, 30, 30)
         self.pdf.ln(1)
 
     def body(self, text: str):
         self.pdf.set_font("Arial", "", 10)
-        self.pdf.multi_cell(0, 5, text)
+        self.pdf.multi_cell(0, 5, _clean(text))
         self.pdf.ln(2)
 
     def bullets(self, items: List[str], limit: int = 10):
         self.pdf.set_font("Arial", "", 10)
         for item in items[:limit]:
             self.pdf.set_x(24)
-            self.pdf.multi_cell(162, 5, f"•  {item}")
+            self.pdf.multi_cell(162, 5, _clean(f"•  {item}"))
             self.pdf.ln(1)
         self.pdf.ln(1)
 
@@ -130,10 +136,10 @@ class PDFReport:
         self.pdf.cell(58, 7, "Value", 1, 0, "R", fill=True)
         self.pdf.cell(40, 7, "Status", 1, 1, "L", fill=True)
         for row in rows[:limit]:
-            self.pdf.cell(70, 7, _trunc(str(row.get("metric", "")), 40), 1, 0, "L")
-            self.pdf.cell(22, 7, str(row.get("year", "-")), 1, 0, "C")
-            self.pdf.cell(58, 7, str(row.get("value", "-")), 1, 0, "R")
-            self.pdf.cell(40, 7, str(row.get("status", "-")), 1, 1, "L")
+            self.pdf.cell(70, 7, _clean(_trunc(str(row.get("metric", "")), 40)), 1, 0, "L")
+            self.pdf.cell(22, 7, _clean(str(row.get("year", "-"))), 1, 0, "C")
+            self.pdf.cell(58, 7, _clean(str(row.get("value", "-"))), 1, 0, "R")
+            self.pdf.cell(40, 7, _clean(str(row.get("status", "-"))), 1, 1, "L")
         self.pdf.ln(2)
 
     def citations(self, sources: List[Dict[str, Any]], limit: int = 15):
@@ -149,7 +155,7 @@ class PDFReport:
             excerpt = (src.get("excerpt") or "").strip().replace("\n", " ")
             self.pdf.multi_cell(
                 0, 5,
-                f"[{i}] {title}{page_part} — {_trunc(excerpt, 220)}",
+                _clean(f"[{i}] {title}{page_part} — {_trunc(excerpt, 220)}"),
             )
             self.pdf.ln(1)
 
@@ -157,7 +163,7 @@ class PDFReport:
         """Italic note line."""
         self.pdf.set_font("Arial", "I", 9)
         self.pdf.set_text_color(110, 110, 110)
-        self.pdf.multi_cell(0, 5, text)
+        self.pdf.multi_cell(0, 5, _clean(text))
         self.pdf.set_text_color(30, 30, 30)
         self.pdf.ln(2)
 
@@ -179,7 +185,30 @@ def _strip_markdown(text: str) -> str:
     text = re.sub(r"\*(.+?)\*", r"\1", text, flags=re.DOTALL)        # italic
     text = re.sub(r"`(.+?)`", r"\1", text, flags=re.DOTALL)          # code
     text = re.sub(r"^\s*[-*•]\s+", "• ", text, flags=re.MULTILINE)   # bullets
+    text = re.sub(r"^\s*---+\s*$", "", text, flags=re.MULTILINE)     # rules
     return text
+
+
+def _dedupe_key_findings(text: str) -> str:
+    """Remove 'Key Findings' blocks from summary text when rendered separately."""
+    lines = text.split("\n")
+    out = []
+    i = 0
+    while i < len(lines):
+        stripped = lines[i].strip()
+        if stripped.lower().rstrip(":").startswith("key findings"):
+            # Skip the heading and its bullet/blank lines
+            j = i + 1
+            while j < len(lines) and (
+                not lines[j].strip()
+                or lines[j].strip().startswith(("•", "-", "*"))
+            ):
+                j += 1
+            i = j
+            continue
+        out.append(lines[i])
+        i += 1
+    return "\n".join(out).strip()
 
 
 def _clean(text: Any) -> str:
@@ -254,6 +283,11 @@ async def generate_report(company_id: int, user_id: int, db: AsyncSession) -> Re
         "Growth opportunities, market expansion, new products, strategic partnerships, AI, cloud, data center, international expansion, acquisitions",
         db,
     )
+    financial_chunks = await _get_context(
+        company_id,
+        "Financial statements, revenue, net income, profit margin, assets, liabilities, debt, cash flow, earnings per share, operating income",
+        db,
+    )
 
     # ── 2. Run the real analyses (LLM sections degrade gracefully) ──
     summary_task = generate_executive_summary(company_id, summary_chunks, generator)
@@ -262,8 +296,8 @@ async def generate_report(company_id: int, user_id: int, db: AsyncSession) -> Re
     summary, risks, opportunities = await asyncio.gather(summary_task, risk_task, opp_task)
 
     stored = await get_stored_metrics(company_id, db)
-    if not stored and summary_chunks:
-        metrics_extracted = await extract_financial_metrics(summary_chunks, company_id, db)
+    if not stored and financial_chunks:
+        metrics_extracted = await extract_financial_metrics(financial_chunks, company_id, db)
         logger.info(
             "report_metrics_extracted",
             company_id=company_id,
@@ -283,7 +317,8 @@ async def generate_report(company_id: int, user_id: int, db: AsyncSession) -> Re
 
     summary_text = _strip_markdown(summary.get("executive_summary", "") or "")
     key_findings = summary.get("key_findings", []) or []
-    summary_sections = summary.get("sections", {}) or {}
+    if key_findings:
+        summary_text = _dedupe_key_findings(summary_text)
     llm_ok = not _llm_unavailable(summary.get("executive_summary", "") or "")
 
     # ── 3. Render the PDF ──
@@ -299,10 +334,6 @@ async def generate_report(company_id: int, user_id: int, db: AsyncSession) -> Re
             pdf.subheading("Key Findings")
             pdf.bullets(key_findings)
         pdf.body(summary_text)
-        for name, text in summary_sections.items():
-            if text:
-                pdf.subheading(name)
-                pdf.body(_strip_markdown(text))
     else:
         pdf.note(
             "AI summary could not be generated (usage limit reached or service unavailable). "
