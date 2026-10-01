@@ -13,7 +13,9 @@ services:
       timeout: 5s
       retries: 5
     ports:
-      - "5432:5432"
+      # Windows reserves host port ranges for Hyper-V/WinNAT (5352-5451 includes 5432),
+      # so expose Postgres on a host port outside those ranges.
+      - "55432:5432"
 
   qdrant:
     image: qdrant/qdrant:latest

@@ -19,7 +19,7 @@ AI-powered due diligence workspace for analyzing companies, financial documents,
 Next.js frontend (port 3000)
           |
           v
-FastAPI backend (port 8000) ---- PostgreSQL (port 5432)
+FastAPI backend (port 8000) ---- PostgreSQL (host port 55432)
           |
           +--------------------- Qdrant (port 6333)
 ```
