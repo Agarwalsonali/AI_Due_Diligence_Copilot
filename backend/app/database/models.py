@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional, List
-from sqlalchemy import Integer, String, Text, ForeignKey, DateTime, Date, Float, JSON
+from sqlalchemy import Integer, String, Text, ForeignKey, DateTime, Date, Float, JSON, LargeBinary
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.database import Base
 
@@ -129,6 +129,9 @@ class Report(Base):
     title: Mapped[str] = mapped_column(String)
     report_type: Mapped[str] = mapped_column(String)
     file_path: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    # PDF bytes stored in the DB so reports download straight from the app
+    # and never land in files on the host/code folder.
+    file_data: Mapped[Optional[bytes]] = mapped_column(LargeBinary, nullable=True)
     status: Mapped[str] = mapped_column(String)
     content: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

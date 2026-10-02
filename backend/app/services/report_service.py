@@ -11,7 +11,6 @@ Renders sections into a paginated fpdf2 PDF. Each LLM section degrades
 gracefully: if the AI provider is unavailable/quota-blocked the section
 says so explicitly instead of showing empty placeholder text.
 """
-import os
 import re
 import asyncio
 from datetime import datetime
@@ -167,11 +166,9 @@ class PDFReport:
         self.pdf.set_text_color(30, 30, 30)
         self.pdf.ln(2)
 
-    def save(self, directory: str = "data/reports") -> str:
-        os.makedirs(directory, exist_ok=True)
-        file_path = os.path.join(directory, f"report_{int(datetime.now().timestamp())}.pdf")
-        self.pdf.output(file_path)
-        return file_path
+    def to_bytes(self) -> bytes:
+        """Render the PDF to bytes (stored in the DB, never written to disk)."""
+        return bytes(self.pdf.output())
 
 
 def _trunc(s: str, n: int) -> str:
@@ -437,15 +434,15 @@ async def generate_report(company_id: int, user_id: int, db: AsyncSession) -> Re
     else:
         pdf.note("No source citations available for this report.")
 
-    file_path = pdf.save()
-    logger.info("report_saved", company_id=company_id, file_path=file_path)
+    pdf_bytes = pdf.to_bytes()
+    logger.info("report_rendered", company_id=company_id, size_bytes=len(pdf_bytes))
 
     report = Report(
         company_id=company_id,
         user_id=user_id,
         title=f"Due Diligence Report - {company_name}",
         report_type="due_diligence",
-        file_path=file_path,
+        file_data=pdf_bytes,
         status="completed",
         content={
             "summary": "Report generated successfully.",

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.database.database import get_db
@@ -8,6 +8,7 @@ from app.core.security import get_current_user
 from app.database.schemas import ReportGenerateRequest, ReportResponse
 from app.services.report_service import generate_report as generate_report_service
 import os
+import re
 from typing import List
 
 router = APIRouter(prefix="/api/reports", tags=["reports"])
@@ -46,11 +47,26 @@ async def get_report(id: int, db: AsyncSession = Depends(get_db), user: User = D
         raise HTTPException(status_code=403, detail="Access denied.")
     return ReportResponse.model_validate(report)
 
+def _download_filename(report: Report) -> str:
+    """Browser-friendly filename derived from the report title."""
+    slug = re.sub(r"[^a-z0-9]+", "-", (report.title or "report").lower()).strip("-")
+    return f"{slug or 'report'}-{report.id}.pdf"
+
+
 @router.get("/{id}/download")
 async def download_report(id: int, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
     report = await db.get(Report, id)
     if not report or report.user_id != user.id:
         raise HTTPException(status_code=404, detail="Report not found.")
+    filename = _download_filename(report)
+    # Reports generated since 2026-10 are stored as bytes in the DB.
+    if report.file_data:
+        return Response(
+            content=report.file_data,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+    # Legacy rows (pre-2026-10) point at a file path.
     if report.file_path and os.path.exists(report.file_path):
-        return FileResponse(report.file_path, filename=f"report_{id}.pdf")
+        return FileResponse(report.file_path, filename=filename)
     raise HTTPException(status_code=404, detail="Report file not found.")

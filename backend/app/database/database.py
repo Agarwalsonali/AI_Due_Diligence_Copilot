@@ -25,3 +25,11 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # Lightweight column migration: create_all does not add new columns to
+        # tables that already exist. reports.file_data stores the generated PDF
+        # bytes in the database (added 2026-10).
+        if engine.dialect.name == "postgresql":
+            from sqlalchemy import text
+            await conn.execute(text(
+                "ALTER TABLE reports ADD COLUMN IF NOT EXISTS file_data BYTEA"
+            ))

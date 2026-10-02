@@ -8,6 +8,9 @@ function toCamelCase(str: string): string {
 }
 
 function camelizeKeys(obj: any): any {
+  if (obj instanceof Blob || obj instanceof File) {
+    return obj;
+  }
   if (Array.isArray(obj)) {
     return obj.map(camelizeKeys);
   }
@@ -132,4 +135,26 @@ export const reportAPI = {
   generate: (companyId: number) =>
     api.post("/reports/generate", { company_id: companyId }).then(r => r.data),
   get: (id: number) => api.get(`/reports/${id}`).then(r => r.data),
+  // Downloads the PDF straight to the user via a blob, so the report never
+  // has to be fetched from a folder on disk.
+  download: async (id: number, fallbackName = "report.pdf") => {
+    const res = await api.get(`/reports/${id}/download`, { responseType: "blob" });
+    const url = window.URL.createObjectURL(res.data);
+    try {
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileNameFromDisposition(res.headers?.["content-disposition"], fallbackName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } finally {
+      window.URL.revokeObjectURL(url);
+    }
+  },
 };
+
+function fileNameFromDisposition(disposition?: string, fallback = "report.pdf"): string {
+  const match = disposition?.match(/filename\*?=(?:"([^"]+)"|([^;\s]+))/i);
+  const name = match?.[1] || match?.[2];
+  return name ? decodeURIComponent(name) : fallback;
+}

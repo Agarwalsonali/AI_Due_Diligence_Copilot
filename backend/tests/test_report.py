@@ -10,7 +10,6 @@ Tests cover:
 
 Run with: python -m pytest tests/test_report.py -v
 """
-import os
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -156,12 +155,9 @@ class TestPDFReport:
         pdf = self._build()
         pdf.section("Executive Summary")
         pdf.body("Apple reported revenue of USD 416.2B in fiscal 2025.")
-        path = pdf.save(directory="data/reports_test")
-        try:
-            assert os.path.exists(path)
-            assert os.path.getsize(path) > 1000
-        finally:
-            os.remove(path)
+        data = pdf.to_bytes()
+        assert data[:5] == b"%PDF-"
+        assert len(data) > 1000
 
     def test_renders_table_and_bullets(self):
         pdf = self._build()
@@ -171,11 +167,8 @@ class TestPDFReport:
             {"metric": "Net Income", "year": "2025", "value": "USD 100.4B", "status": "extracted"},
         ])
         pdf.bullets(["Strong margins", "Services growth"])
-        path = pdf.save(directory="data/reports_test")
-        try:
-            assert os.path.exists(path)
-        finally:
-            os.remove(path)
+        data = pdf.to_bytes()
+        assert data[:5] == b"%PDF-"
 
     def test_renders_citations(self):
         pdf = self._build()
@@ -184,42 +177,26 @@ class TestPDFReport:
             {"document_title": "Apple 2025 Annual Report", "page_number": 37, "excerpt": "Total net sales of $416,161 million."},
             {"document_title": "Apple 2025 Annual Report", "page_number": 24, "excerpt": "Risk factors include supply chain dependency."},
         ])
-        path = pdf.save(directory="data/reports_test")
-        try:
-            assert os.path.exists(path)
-        finally:
-            os.remove(path)
+        assert pdf.to_bytes()[:5] == b"%PDF-"
 
     def test_renders_empty_citations_note(self):
         pdf = self._build()
         pdf.section("Sources and Citations")
         pdf.citations([])
-        path = pdf.save(directory="data/reports_test")
-        try:
-            assert os.path.exists(path)
-        finally:
-            os.remove(path)
+        assert pdf.to_bytes()[:5] == b"%PDF-"
 
     def test_special_characters_do_not_crash(self):
         pdf = self._build()
         pdf.section("Key Risks")
         pdf.body("Supply chain exposure to \u201cAsia-Pacific\u201d — 苹果 — caf\u00e9 naïve")
-        path = pdf.save(directory="data/reports_test")
-        try:
-            assert os.path.exists(path)
-        finally:
-            os.remove(path)
+        assert pdf.to_bytes()[:5] == b"%PDF-"
 
     def test_long_content_paginates(self):
         pdf = self._build()
         pdf.section("Financial Performance")
         for i in range(60):
             pdf.body(f"Paragraph {i}: " + "financial performance detail. " * 20)
-        path = pdf.save(directory="data/reports_test")
-        try:
-            assert os.path.exists(path)
-        finally:
-            os.remove(path)
+        assert pdf.to_bytes()[:5] == b"%PDF-"
 
 
 # ─── Full report generation (mocked pipeline) ─────────────────────────────────
@@ -316,15 +293,13 @@ class TestGenerateReport:
     async def test_generates_real_pdf(self, mock_analysis_stack):
         report, captured, _ = await self._run(mock_analysis_stack)
         assert report.status == "completed"
-        assert report.file_path and os.path.exists(report.file_path)
-        with open(report.file_path, "rb") as f:
-            assert f.read(5) == b"%PDF-"  # valid PDF
-        assert os.path.getsize(report.file_path) > 1000
+        # PDF is stored as bytes in the DB, not written to disk
+        assert report.file_data[:5] == b"%PDF-"  # valid PDF
+        assert len(report.file_data) > 1000
         assert captured["report"].content["risk_count"] == 1
         assert captured["report"].content["opportunity_count"] == 1
         assert captured["report"].content["metric_count"] == 1
         assert captured["report"].content["llm_available"] is True
-        os.remove(report.file_path)
 
     @pytest.mark.asyncio
     async def test_quota_blocked_report_still_generated(self, mock_analysis_stack):
@@ -334,8 +309,8 @@ class TestGenerateReport:
             extra="AI usage limit reached temporarily. Please wait and try again later.",
         )
         assert report.status == "completed"
+        assert report.file_data[:5] == b"%PDF-"
         assert captured["report"].content["llm_available"] is False
-        os.remove(report.file_path)
 
     @pytest.mark.asyncio
     async def test_metrics_not_reextracted_when_already_stored(self, mock_analysis_stack):

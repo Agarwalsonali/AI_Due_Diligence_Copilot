@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { companyAPI, reportAPI } from '@/lib/api';
 import { Company, Report } from '@/types';
 import { toast } from 'sonner';
-import { FileBarChart, FileText, Plus, Clock, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { FileBarChart, FileText, Plus, Clock, CheckCircle2, AlertCircle, Loader2, Download } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 
 export default function ReportsPage() {
@@ -17,6 +17,7 @@ export default function ReportsPage() {
   const [generating, setGenerating] = useState(false);
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
+  const [downloadingId, setDownloadingId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -50,6 +51,17 @@ export default function ReportsPage() {
       toast.error(e?.response?.data?.detail || 'Failed to generate report');
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const handleDownload = async (report: Report) => {
+    setDownloadingId(report.id);
+    try {
+      await reportAPI.download(report.id, `report-${report.id}.pdf`);
+    } catch (e: any) {
+      toast.error(e?.response?.data?.detail || 'Failed to download report');
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -129,13 +141,28 @@ export default function ReportsPage() {
                       <div className="text-xs text-muted-foreground">{formatDate(report.createdAt)}</div>
                     </div>
                   </div>
-                  <Badge variant="outline" className={`text-xs ${
-                    report.status === 'completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' :
-                    report.status === 'generating' ? 'bg-primary/10 text-primary border-primary/20' :
-                    'bg-destructive/10 text-destructive border-destructive/20'
-                  }`}>
-                    {report.status}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className={`text-xs ${
+                      report.status === 'completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' :
+                      report.status === 'generating' ? 'bg-primary/10 text-primary border-primary/20' :
+                      'bg-destructive/10 text-destructive border-destructive/20'
+                    }`}>
+                      {report.status}
+                    </Badge>
+                    {report.status === 'completed' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDownload(report)}
+                        disabled={downloadingId === report.id}
+                      >
+                        {downloadingId === report.id
+                          ? <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          : <Download className="h-4 w-4 mr-2" />}
+                        Download
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

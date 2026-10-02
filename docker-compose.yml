@@ -34,7 +34,6 @@ services:
       - "8000:8000"
     volumes:
       - ./data/uploads:/app/data/uploads
-      - ./data/reports:/app/data/reports
       - hf_cache:/app/models/hf
     environment:
       - HF_HOME=/app/models/hf
