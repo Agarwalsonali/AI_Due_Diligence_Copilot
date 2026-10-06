@@ -5,8 +5,9 @@ from sqlalchemy import select
 from app.database.database import get_db
 from app.database.models import User, Company, Report
 from app.core.security import get_current_user
-from app.database.schemas import ReportGenerateRequest, ReportResponse
+from app.database.schemas import ReportGenerateRequest, ReportResponse, ComparisonReportRequest
 from app.services.report_service import generate_report as generate_report_service
+from app.services.report_service import generate_comparison_report as generate_comparison_report_service
 import os
 import re
 from typing import List
@@ -36,6 +37,24 @@ async def generate_report(req: ReportGenerateRequest, db: AsyncSession = Depends
     if company.created_by != user.id:
         raise HTTPException(status_code=403, detail="Access denied.")
     report = await generate_report_service(req.company_id, user.id, db)
+    return ReportResponse.model_validate(report)
+
+@router.post("/generate-comparison", response_model=ReportResponse)
+async def generate_comparison_report(req: ComparisonReportRequest, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+    """Generate a comparative due diligence PDF for 2-4 companies the user owns."""
+    company_ids = list(dict.fromkeys(req.company_ids))  # dedupe, keep order
+    if not (2 <= len(company_ids) <= 4):
+        raise HTTPException(status_code=400, detail="Select between 2 and 4 companies to compare.")
+    for cid in company_ids:
+        company = await db.get(Company, cid)
+        if not company:
+            raise HTTPException(status_code=404, detail=f"Company {cid} not found.")
+        if company.created_by != user.id:
+            raise HTTPException(status_code=403, detail="Access denied.")
+    try:
+        report = await generate_comparison_report_service(company_ids, user.id, db)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
     return ReportResponse.model_validate(report)
 
 @router.get("/{id}", response_model=ReportResponse)

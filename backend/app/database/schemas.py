@@ -249,6 +249,9 @@ class ReportGenerateRequest(BaseModel):
     company_id: int
     sections: Optional[List[str]] = None
 
+class ComparisonReportRequest(BaseModel):
+    company_ids: List[int]
+
 class ReportResponse(BaseModel):
     id: int
     title: str

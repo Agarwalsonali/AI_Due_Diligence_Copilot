@@ -32,6 +32,7 @@ from app.financial.trends import analyze_trends
 from app.analysis.summary import generate_executive_summary
 from app.analysis.risk import analyze_risks
 from app.analysis.opportunities import analyze_opportunities
+from app.analysis.comparison import compare_companies as compare_engine
 from app.core.logging import get_logger
 
 logger = get_logger("report_service")
@@ -164,6 +165,24 @@ class PDFReport:
         self.pdf.set_text_color(110, 110, 110)
         self.pdf.multi_cell(0, 5, _clean(text))
         self.pdf.set_text_color(30, 30, 30)
+        self.pdf.ln(2)
+
+    def comparison_table(self, companies: List[str], rows: List[List[str]], limit: int = 24):
+        """Side-by-side table: first column = metric, one column per company."""
+        n = max(1, len(companies))
+        metric_w = 50.0
+        col_w = (170.0 - metric_w) / n
+        self.pdf.set_font("Arial", "", 8)
+        self.pdf.set_fill_color(240, 240, 240)
+        self.pdf.cell(metric_w, 7, "Metric", 1, 0, "L", fill=True)
+        for name in companies:
+            self.pdf.cell(col_w, 7, _clean(_trunc(name, 22)), 1, 0, "C", fill=True)
+        self.pdf.ln()
+        for row in rows[:limit]:
+            self.pdf.cell(metric_w, 6, _clean(_trunc(str(row[0]), 32)), 1, 0, "L")
+            for val in row[1:n + 1]:
+                self.pdf.cell(col_w, 6, _clean(str(val)), 1, 0, "R")
+            self.pdf.ln()
         self.pdf.ln(2)
 
     def to_bytes(self) -> bytes:
@@ -451,6 +470,143 @@ async def generate_report(company_id: int, user_id: int, db: AsyncSession) -> Re
             "opportunity_count": len(opportunities),
             "metric_count": len(stored),
             "source_count": len(sources),
+        },
+    )
+
+    db.add(report)
+    await db.commit()
+    await db.refresh(report)
+    return report
+
+
+# ─── Comparison report generation ──────────────────────────────────────────
+
+async def generate_comparison_report(company_ids: List[int], user_id: int, db: AsyncSession) -> Report:
+    """Generate a comparative PDF for 2-4 companies.
+
+    Combines real stored financial metrics (side-by-side table) with the
+    LLM comparative narrative. The LLM section degrades gracefully when the
+    AI provider is unavailable. The PDF is stored as bytes in the reports
+    table (report_type="comparison", company_id NULL).
+    """
+    companies = []
+    for cid in company_ids:
+        company = await db.get(Company, cid)
+        if not company:
+            raise ValueError(f"Company {cid} not found.")
+        companies.append(company)
+    company_names = [c.name for c in companies]
+    title = f"Comparative Due Diligence Report - {' vs '.join(company_names)}"
+
+    # ── 1. Evidence retrieval per company ──
+    chunks_by_company: Dict[int, List[Dict[str, Any]]] = {}
+    for c in companies:
+        chunks_by_company[c.id] = await _get_context(
+            c.id,
+            "Market position, financial health, risks, opportunities comparison",
+            db,
+        )
+
+    # ── 2. LLM comparative narrative (degrades gracefully) ──
+    narrative = ""
+    try:
+        engine_result = await compare_engine(
+            [c.id for c in companies], chunks_by_company, get_llm_generator()
+        )
+        narrative = _strip_markdown(engine_result.get("comparison", "") or "")
+    except Exception as e:
+        logger.error("comparison_report_llm_failed", error=str(e), company_ids=company_ids)
+    narrative_ok = bool(narrative) and not _llm_unavailable(narrative)
+
+    # ── 3. Stored metrics → side-by-side rows ──
+    metrics_by_company: Dict[int, List[Dict[str, Any]]] = {}
+    for c in companies:
+        metrics_by_company[c.id] = await get_stored_metrics(c.id, db)
+
+    keys: List[tuple] = []
+    seen = set()
+    for c in companies:
+        for m in metrics_by_company[c.id]:
+            if m.get("status") in ("extracted", "calculated") and m.get("metric_value") is not None:
+                key = (str(m.get("metric_name", "")).replace("_", " ").title(), m.get("fiscal_year") or "-")
+                if key not in seen:
+                    seen.add(key)
+                    keys.append(key)
+    keys.sort(key=lambda k: (str(k[0]), str(k[1])))
+
+    def _fmt_cell(metric_label: str, year: Any, company_id: int) -> str:
+        for m in metrics_by_company[company_id]:
+            if (str(m.get("metric_name", "")).replace("_", " ").title() == metric_label
+                    and (m.get("fiscal_year") or "-") == year
+                    and m.get("metric_value") is not None):
+                return _fmt_money(m.get("metric_value"), m.get("currency") or "USD")
+        return "-"
+
+    table_rows = [
+        [f"{metric_label} ({year})"] + [_fmt_cell(metric_label, year, c.id) for c in companies]
+        for metric_label, year in keys[:24]
+    ]
+
+    # ── 4. Render the PDF ──
+    pdf = PDFReport(
+        title=title,
+        subtitle=f"Generated {datetime.now().strftime('%Y-%m-%d %H:%M UTC')} | AI Due Diligence Copilot",
+    )
+
+    pdf.section("Companies Compared")
+    for c in companies:
+        parts = [c.name]
+        if c.ticker:
+            parts.append(f"Ticker: {c.ticker}")
+        if c.industry:
+            parts.append(f"Industry: {c.industry}")
+        if c.sector:
+            parts.append(f"Sector: {c.sector}")
+        pdf.bullets([" — ".join(str(p) for p in parts)])
+
+    pdf.section("Financial Metrics Comparison")
+    if table_rows:
+        pdf.comparison_table(company_names, table_rows)
+    else:
+        pdf.note(
+            "No financial metrics were available for a side-by-side comparison."
+            " Upload and process financial documents for these companies first."
+        )
+
+    pdf.section("Comparative Analysis")
+    if narrative_ok:
+        pdf.body(narrative)
+    else:
+        pdf.note(
+            "AI comparative analysis could not be generated (usage limit reached or service unavailable)."
+            " The financial metrics above come from stored document extractions."
+        )
+
+    pdf.section("Sources and Citations")
+    all_sources: List[Dict[str, Any]] = []
+    for c in companies:
+        all_sources.extend(build_source_list(chunks_by_company.get(c.id) or [], max_sources=6))
+    if all_sources:
+        pdf.citations(all_sources[:15])
+    else:
+        pdf.note("No source citations available for this comparison.")
+
+    pdf_bytes = pdf.to_bytes()
+    logger.info("comparison_report_rendered", company_ids=company_ids, size_bytes=len(pdf_bytes))
+
+    report = Report(
+        company_id=None,
+        user_id=user_id,
+        title=title,
+        report_type="comparison",
+        file_data=pdf_bytes,
+        status="completed",
+        content={
+            "summary": "Comparison report generated successfully.",
+            "llm_available": narrative_ok,
+            "company_ids": list(company_ids),
+            "metric_rows": len(table_rows),
+            "source_count": len(all_sources),
         },
     )
 

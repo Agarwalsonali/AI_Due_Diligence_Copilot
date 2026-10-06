@@ -196,9 +196,10 @@ export interface ComparisonRequest {
 }
 
 export interface ComparisonResponse {
-  companyId: number;
-  companies: Company[];
-  comparisonPoints: Record<string, any>[];
+  companyIds: number[];
+  companyNames: Record<string, string>;
+  comparison: string;
+  sources: SourceCitation[] | null;
 }
 
 // ─── Reports ─────────────────────────────────────────────────────────────────

@@ -318,5 +318,72 @@ class TestGenerateReport:
         mock_extract.assert_not_called()
 
 
+# ─── Comparison report generation (mocked pipeline) ──────────────────
+
+class TestGenerateComparisonReport:
+    """Comparison PDF for 2-4 companies, retrieval and LLM mocked out."""
+
+    @staticmethod
+    def _companies():
+        specs = [(1, "Apple Inc.", "AAPL"), (2, "Microsoft Corporation", "MSFT")]
+        out = {}
+        for cid, name, ticker in specs:
+            c = MagicMock()
+            c.id, c.name, c.ticker, c.industry, c.sector = cid, name, ticker, "Technology", None
+            out[cid] = c
+        return out
+
+    @staticmethod
+    def _metrics():
+        return {
+            1: [{"metric_name": "revenue", "metric_value": 416_161_000_000.0, "currency": "USD",
+                 "fiscal_year": 2025, "status": "extracted"}],
+            2: [{"metric_name": "revenue", "metric_value": 245_122_000_000.0, "currency": "USD",
+                 "fiscal_year": 2025, "status": "extracted"}],
+        }
+
+    async def _run(self, comparison_answer: str):
+        from app.services import report_service
+        companies = self._companies()
+        metrics = self._metrics()
+        captured = {}
+
+        db = AsyncMock()
+        db.get = AsyncMock(side_effect=lambda model, pk: companies.get(pk) if model.__name__ == "Company" else None)
+        db.add = lambda obj: captured.setdefault("report", obj)
+
+        async def refresh(obj):
+            obj.id = 88
+        db.refresh = refresh
+
+        with patch.object(report_service, "_get_context", new=AsyncMock(return_value=[])), \
+             patch.object(report_service, "compare_engine", new=AsyncMock(return_value={"comparison": comparison_answer})), \
+             patch.object(report_service, "get_stored_metrics", new=AsyncMock(side_effect=lambda cid, db_: metrics[cid])), \
+             patch.object(report_service, "get_llm_generator", new=MagicMock(return_value=MagicMock())):
+            report = await report_service.generate_comparison_report([1, 2], 1, db)
+        return report, captured
+
+    @pytest.mark.asyncio
+    async def test_generates_comparison_pdf(self):
+        report, captured = await self._run("Apple leads on margins. Microsoft leads on cloud growth.")
+        assert report.status == "completed"
+        assert report.report_type == "comparison"
+        assert report.company_id is None
+        assert report.file_data[:5] == b"%PDF-"  # valid PDF
+        assert len(report.file_data) > 1000
+        assert "Apple Inc." in report.title and "Microsoft Corporation" in report.title
+        assert captured["report"].content["metric_rows"] == 1
+        assert captured["report"].content["llm_available"] is True
+
+    @pytest.mark.asyncio
+    async def test_quota_blocked_comparison_still_generated(self):
+        report, captured = await self._run(
+            "AI usage limit reached temporarily. Please wait and try again later."
+        )
+        assert report.status == "completed"
+        assert report.file_data[:5] == b"%PDF-"
+        assert captured["report"].content["llm_available"] is False
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

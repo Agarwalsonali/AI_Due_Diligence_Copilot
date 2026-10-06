@@ -4,17 +4,21 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { companyAPI, analysisAPI } from '@/lib/api';
-import { Company } from '@/types';
+import { companyAPI, analysisAPI, reportAPI } from '@/lib/api';
+import { Company, ComparisonResponse, Report } from '@/types';
 import { toast } from 'sonner';
-import { GitCompare, Loader2, BarChart3, X } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import { GitCompare, Loader2, BarChart3, X, Download, FileBarChart, FileText } from 'lucide-react';
 
 export default function ComparePage() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [comparing, setComparing] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<ComparisonResponse | null>(null);
+  const [report, setReport] = useState<Report | null>(null);
+  const [generatingReport, setGeneratingReport] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     const fetchCompanies = async () => {
@@ -41,16 +45,34 @@ export default function ComparePage() {
     });
   };
 
+  const createReport = async (companyIds: number[]) => {
+    setGeneratingReport(true);
+    try {
+      const rep = await reportAPI.generateComparison(companyIds);
+      setReport(rep);
+      return rep;
+    } catch (e: any) {
+      toast.error(e?.response?.data?.detail || 'Failed to generate comparison report');
+      return null;
+    } finally {
+      setGeneratingReport(false);
+    }
+  };
+
   const handleCompare = async () => {
     if (selectedIds.length < 2) {
       toast.error('Select at least 2 companies');
       return;
     }
     setComparing(true);
+    setResult(null);
+    setReport(null);
     try {
       const res = await analysisAPI.compare(selectedIds);
       setResult(res);
       toast.success('Comparison complete');
+      // Auto-generate the downloadable comparison report for this result
+      await createReport(selectedIds);
     } catch (e: any) {
       toast.error(e?.response?.data?.detail || 'Comparison failed');
     } finally {
@@ -58,7 +80,19 @@ export default function ComparePage() {
     }
   };
 
-  const selectedCompanies = companies.filter(c => selectedIds.includes(c.id));
+  const handleDownload = async () => {
+    if (!report) return;
+    setDownloading(true);
+    try {
+      await reportAPI.download(report.id, `comparison-report-${report.id}.pdf`);
+    } catch (e: any) {
+      toast.error(e?.response?.data?.detail || 'Failed to download report');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const comparedNames: string[] = result?.companyNames ? Object.values(result.companyNames) : [];
 
   return (
     <div className="space-y-6">
@@ -119,24 +153,73 @@ export default function ComparePage() {
       {result && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-primary" />
-              Comparison Results
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {result.comparisonPoints && result.comparisonPoints.length > 0 ? (
-              <div className="space-y-4">
-                {result.comparisonPoints.map((point: any, i: number) => (
-                  <div key={i} className="p-4 rounded-lg bg-muted/30 border">
-                    <pre className="text-sm text-muted-foreground whitespace-pre-wrap">{JSON.stringify(point, null, 2)}</pre>
-                  </div>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5 text-primary" />
+                Comparison Results
+              </CardTitle>
+              <div className="flex items-center gap-2">
+                {generatingReport ? (
+                  <Button variant="outline" size="sm" disabled>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Generating report...
+                  </Button>
+                ) : report ? (
+                  <Button size="sm" onClick={handleDownload} disabled={downloading}>
+                    {downloading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+                    Download Report
+                  </Button>
+                ) : (
+                  <Button variant="outline" size="sm" onClick={() => createReport(selectedIds)} disabled={selectedIds.length < 2}>
+                    <FileBarChart className="h-4 w-4 mr-2" />
+                    Generate Report
+                  </Button>
+                )}
+              </div>
+            </div>
+            {comparedNames.length > 0 && (
+              <CardDescription className="flex flex-wrap items-center gap-2 pt-1">
+                <span>Comparing:</span>
+                {comparedNames.map((name, i) => (
+                  <Badge key={i} variant="outline" className="text-xs">{name}</Badge>
                 ))}
+              </CardDescription>
+            )}
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {report && (
+              <div className="rounded-lg border bg-emerald-500/5 border-emerald-500/20 px-4 py-3 text-sm text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+                <FileBarChart className="h-4 w-4 shrink-0" />
+                <span className="flex-1 truncate">{report.title}</span>
+                <span className="text-xs text-muted-foreground hidden sm:inline">ready to download</span>
+              </div>
+            )}
+
+            {result.comparison ? (
+              <div className="prose prose-sm max-w-none text-muted-foreground">
+                <ReactMarkdown>{result.comparison}</ReactMarkdown>
               </div>
             ) : (
-              <p className="text-muted-foreground text-sm">
-                Comparison data generated. Review the analysis results.
-              </p>
+              <p className="text-muted-foreground text-sm">No comparison narrative was generated.</p>
+            )}
+
+            {result.sources && result.sources.length > 0 && (
+              <section>
+                <h3 className="flex items-center gap-2 text-sm font-semibold mb-2">
+                  <FileText className="h-4 w-4 text-primary" />
+                  Sources
+                </h3>
+                <ul className="space-y-1.5">
+                  {result.sources.slice(0, 8).map((src: any, i: number) => (
+                    <li key={i} className="text-xs text-muted-foreground flex gap-2">
+                      <span className="text-primary">[{i + 1}]</span>
+                      <span>{src.documentTitle || src.document_title}
+                        {src.pageNumber ? `, p. ${src.pageNumber}` : ''}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
             )}
           </CardContent>
         </Card>

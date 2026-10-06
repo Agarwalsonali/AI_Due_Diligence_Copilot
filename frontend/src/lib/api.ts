@@ -135,6 +135,8 @@ export const reportAPI = {
   generate: (companyId: number) =>
     api.post("/reports/generate", { company_id: companyId }).then(r => r.data),
   get: (id: number) => api.get(`/reports/${id}`).then(r => r.data),
+  generateComparison: (companyIds: number[]) =>
+    api.post("/reports/generate-comparison", { company_ids: companyIds }).then(r => r.data),
   // Downloads the PDF straight to the user via a blob, so the report never
   // has to be fetched from a folder on disk.
   download: async (id: number, fallbackName = "report.pdf") => {
