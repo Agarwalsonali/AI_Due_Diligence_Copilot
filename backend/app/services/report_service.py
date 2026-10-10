@@ -64,13 +64,17 @@ class PDFReport:
     def __init__(self, title: str, subtitle: str = ""):
         from fpdf import FPDF
 
+        title = _clean(title)
+        subtitle = _clean(subtitle)
+
         class _PDF(FPDF):
             def header(self):
                 if self.page_no() == 1:
                     return
                 self.set_font("Arial", "B", 9)
                 self.set_text_color(120, 120, 120)
-                self.cell(0, 8, title, 0, 1, "C")
+                # Running header must wrap or long titles clip off-page.
+                self.multi_cell(0, 5, title, 0, "C")
                 self.ln(2)
 
             def footer(self):
@@ -85,12 +89,19 @@ class PDFReport:
         self.pdf.add_page()
         self.pdf.set_text_color(30, 30, 30)
 
-        self.pdf.set_font("Arial", "B", 20)
-        self.pdf.cell(0, 12, title, 0, 1, "C")
+        # Long titles shrink before they can overflow the page width, and
+        # multi_cell wraps anything that still doesn't fit (cell() clips).
+        size = 20
+        self.pdf.set_font("Arial", "B", size)
+        while size > 10 and self.pdf.get_string_width(title) > 170:
+            size -= 1
+            self.pdf.set_font("Arial", "B", size)
+        self.pdf.multi_cell(0, size * 0.6, title, 0, "C")
         if subtitle:
+            self.pdf.ln(2)
             self.pdf.set_font("Arial", "", 12)
             self.pdf.set_text_color(90, 90, 90)
-            self.pdf.cell(0, 8, subtitle, 0, 1, "C")
+            self.pdf.multi_cell(0, 8, subtitle, 0, "C")
             self.pdf.set_text_color(30, 30, 30)
         self.pdf.ln(4)
 
@@ -103,7 +114,7 @@ class PDFReport:
             self.pdf.add_page()
         self.pdf.set_font("Arial", "B", 14)
         self.pdf.set_draw_color(60, 60, 60)
-        self.pdf.cell(0, 9, name, 0, 1)
+        self.pdf.multi_cell(0, 9, name, 0, "L")
         self.pdf.line(20, self.pdf.get_y(), 190, self.pdf.get_y())
         self.pdf.ln(3)
 

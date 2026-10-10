@@ -198,6 +198,29 @@ class TestPDFReport:
             pdf.body(f"Paragraph {i}: " + "financial performance detail. " * 20)
         assert pdf.to_bytes()[:5] == b"%PDF-"
 
+    def test_long_title_wraps_not_clips(self):
+        # Regression: long titles rendered with cell() were clipped mid-word
+        # at both page edges ("...parative Due Diligence Report - ... Corpora...").
+        import re
+        import zlib
+        from app.services.report_service import PDFReport
+        long_title = "Comparative Due Diligence Report - Apple Inc. vs Microsoft Corporation"
+        pdf = PDFReport(long_title, subtitle="Generated 2026 test | AI Due Diligence Copilot")
+        data = pdf.to_bytes()
+        assert data[:5] == b"%PDF-"
+        assert len(data) > 1000
+        # Title text must be fully present in the PDF content (no clipping).
+        # fpdf2 compresses content streams, so decompress them first.
+        raw = b""
+        for m in re.finditer(rb"stream\r?\n(.*?)endstream", data, re.DOTALL):
+            try:
+                raw += zlib.decompress(m.group(1))
+            except Exception:
+                raw += m.group(1)
+        texts = "".join(m.decode("latin-1") for m in re.findall(rb"\(([^)]*)\)", raw))
+        for fragment in ("Comparative", "Diligence", "Corporation"):
+            assert fragment in texts, fragment
+
 
 # ─── Full report generation (mocked pipeline) ─────────────────────────────────
 
