@@ -14,6 +14,7 @@ import Link from 'next/link';
 import { companyAPI, analysisAPI } from '@/lib/api';
 import { Company, FinancialMetricResponse, FinancialRatio } from '@/types';
 import { toast } from 'sonner';
+import { notify } from '@/lib/notify';
 
 import { MetricsCards } from '@/components/company/metrics-cards';
 import { UploadDialog } from '@/components/document/upload-dialog';
@@ -108,9 +109,13 @@ export default function CompanyDetailPage() {
           break;
         }
       }
-      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} analysis complete`);
+      notify.success(`${type.charAt(0).toUpperCase() + type.slice(1)} analysis complete`, {
+        href: `/companies/${id}`,
+      });
     } catch (e: any) {
-      toast.error(e?.response?.data?.detail || `Failed to run ${type} analysis`);
+      notify.error(`Failed to run ${type} analysis`, {
+        description: e?.response?.data?.detail || undefined,
+      });
     } finally {
       setAnalyzing(prev => ({ ...prev, [type]: false }));
     }
@@ -120,10 +125,10 @@ export default function CompanyDetailPage() {
     if (!confirm('Delete this company and all its documents?')) return;
     try {
       await companyAPI.delete(id);
-      toast.success('Company deleted');
+      notify.success('Company deleted', { description: 'All of its documents and vectors were removed.' });
       router.push('/companies');
     } catch (e) {
-      toast.error('Failed to delete company');
+      notify.error('Failed to delete company');
     }
   };
 

@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { companyAPI } from '@/lib/api';
 import { Plus, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { notify } from '@/lib/notify';
 
 interface CompanyFormProps {
   onSuccess?: () => void;
@@ -40,13 +41,13 @@ export function CompanyForm({ onSuccess }: CompanyFormProps) {
     setLoading(true);
     try {
       await companyAPI.create(formData);
-      toast.success('Company created successfully');
+      notify.success('Company created successfully');
       setOpen(false);
       onSuccess?.();
       setFormData({ name: '', ticker: '', industry: '', sector: '', description: '', website: '' });
     } catch (error: any) {
       const msg = error?.response?.data?.detail || 'Failed to create company';
-      toast.error(msg);
+      notify.error('Failed to create company', { description: msg });
     } finally {
       setLoading(false);
     }

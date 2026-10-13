@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { companyAPI, reportAPI } from '@/lib/api';
 import { Company, Report } from '@/types';
 import { toast } from 'sonner';
+import { notify } from '@/lib/notify';
 import { FileBarChart, FileText, Plus, Clock, CheckCircle2, AlertCircle, Loader2, Download } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 
@@ -46,9 +47,14 @@ export default function ReportsPage() {
     try {
       const report = await reportAPI.generate(parseInt(selectedCompany));
       setReports(prev => [report, ...prev]);
-      toast.success('Report generated successfully!');
+      notify.success('Report generated successfully!', {
+        description: report?.title || undefined,
+        href: '/reports',
+      });
     } catch (e: any) {
-      toast.error(e?.response?.data?.detail || 'Failed to generate report');
+      notify.error('Failed to generate report', {
+        description: e?.response?.data?.detail || undefined,
+      });
     } finally {
       setGenerating(false);
     }

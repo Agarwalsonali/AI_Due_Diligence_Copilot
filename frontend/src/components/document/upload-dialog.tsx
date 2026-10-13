@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { UploadCloud, File, X, Loader2 } from 'lucide-react';
 import { documentAPI } from '@/lib/api';
 import { toast } from 'sonner';
+import { notify } from '@/lib/notify';
 
 interface UploadDialogProps {
   companyId?: string | number;
@@ -70,7 +71,10 @@ export function UploadDialog({ companyId, onSuccess }: UploadDialogProps) {
 
       clearInterval(interval);
       setProgress(100);
-      toast.success('Document uploaded and processing started');
+      notify.success('Document uploaded and processing started', {
+        description: `${title || file.name} is queued for processing.`,
+        href: '/documents',
+      });
 
       setTimeout(() => {
         setOpen(false);
@@ -80,7 +84,7 @@ export function UploadDialog({ companyId, onSuccess }: UploadDialogProps) {
     } catch (e: any) {
       const msg = e?.response?.data?.detail || 'Upload failed';
       setError(msg);
-      toast.error(msg);
+      notify.error('Document upload failed', { description: msg });
     } finally {
       setUploading(false);
     }

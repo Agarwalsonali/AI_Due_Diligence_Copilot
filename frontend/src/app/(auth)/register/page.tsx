@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Mail, Lock, User, AlertCircle, TrendingUp, Eye, EyeOff } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
-import { toast } from 'sonner';
+import { notify } from '@/lib/notify';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
@@ -34,11 +34,11 @@ export default function RegisterPage() {
     setError('');
     try {
       await register(name, email, password);
-      toast.success('Account created successfully');
+      notify.success('Account created successfully');
     } catch (err: any) {
       const msg = err?.response?.data?.detail || err?.message || 'Failed to register';
       setError(msg);
-      toast.error('Registration failed');
+      notify.error('Registration failed', { description: msg });
     } finally {
       setLoading(false);
     }

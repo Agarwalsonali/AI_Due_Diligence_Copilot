@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { companyAPI, analysisAPI, reportAPI } from '@/lib/api';
 import { Company, ComparisonResponse, Report } from '@/types';
 import { toast } from 'sonner';
+import { notify } from '@/lib/notify';
 import ReactMarkdown from 'react-markdown';
 import { GitCompare, Loader2, BarChart3, X, Download, FileBarChart, FileText } from 'lucide-react';
 
@@ -52,7 +53,9 @@ export default function ComparePage() {
       setReport(rep);
       return rep;
     } catch (e: any) {
-      toast.error(e?.response?.data?.detail || 'Failed to generate comparison report');
+      notify.error('Failed to generate comparison report', {
+        description: e?.response?.data?.detail || undefined,
+      });
       return null;
     } finally {
       setGeneratingReport(false);
@@ -70,11 +73,13 @@ export default function ComparePage() {
     try {
       const res = await analysisAPI.compare(selectedIds);
       setResult(res);
-      toast.success('Comparison complete');
+      notify.success('Comparison complete', { href: '/compare' });
       // Auto-generate the downloadable comparison report for this result
       await createReport(selectedIds);
     } catch (e: any) {
-      toast.error(e?.response?.data?.detail || 'Comparison failed');
+      notify.error('Comparison failed', {
+        description: e?.response?.data?.detail || undefined,
+      });
     } finally {
       setComparing(false);
     }

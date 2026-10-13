@@ -48,7 +48,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const response = await authAPI.login(payload);
     localStorage.setItem('access_token', response.data.accessToken || response.data.access_token);
     await fetchUser();
-    window.location.replace('/');
+    // Client-side navigation keeps the root-layout <Toaster /> mounted, so the
+    // "Logged in successfully" notification is actually visible after routing.
+    router.replace('/');
   };
 
   const register = async (nameOrData: string | { name: string; email: string; password: string }, email?: string, password?: string) => {
@@ -58,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const response = await authAPI.register(payload);
     localStorage.setItem('access_token', response.data.accessToken || response.data.access_token);
     await fetchUser();
-    window.location.replace('/');
+    router.replace('/');
   };
 
   const logout = async () => {

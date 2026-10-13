@@ -8,7 +8,7 @@ import { FileText, Trash2, Loader2 } from 'lucide-react';
 import { documentAPI } from '@/lib/api';
 import { Document } from '@/types';
 import { formatDate } from '@/lib/utils';
-import { toast } from 'sonner';
+import { notify } from '@/lib/notify';
 import { useRouter } from 'next/navigation';
 
 interface DocumentListProps {
@@ -48,15 +48,36 @@ export function DocumentList({ companyId, limit, hideActions }: DocumentListProp
     return () => clearInterval(interval);
   }, [docs, fetchDocs]);
 
+  // Push a notification when a document finishes or fails processing, so the
+  // user doesn't have to keep this list open to know when indexing is done.
+  const prevStatuses = React.useRef<Map<number, string>>(new Map());
+  useEffect(() => {
+    docs.forEach(doc => {
+      const prev = prevStatuses.current.get(doc.id);
+      prevStatuses.current.set(doc.id, doc.processingStatus);
+      if (!prev || prev === doc.processingStatus) return;
+
+      if (doc.processingStatus === 'completed') {
+        notify.success('Document ready for analysis', {
+          description: `${doc.title} finished processing.`,
+        });
+      } else if (doc.processingStatus === 'failed') {
+        notify.error('Document processing failed', {
+          description: doc.errorMessage || `${doc.title} could not be processed.`,
+        });
+      }
+    });
+  }, [docs]);
+
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this document and all its vectors?')) return;
     setDeleting(id);
     try {
       await documentAPI.delete(id);
       setDocs(prev => prev.filter(d => d.id !== id));
-      toast.success('Document deleted');
+      notify.success('Document deleted');
     } catch (e) {
-      toast.error('Failed to delete document');
+      notify.error('Failed to delete document');
     } finally {
       setDeleting(null);
     }

@@ -1,10 +1,10 @@
 'use client';
 
-import { Search, Sun, Moon, Bell } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
 import { useTheme } from '@/components/theme-provider';
+import { NotificationBell } from '@/components/layout/notification-bell';
 
 const pageTitles: Record<string, string> = {
   dashboard: 'Dashboard',
@@ -39,10 +39,7 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-4 w-4" />
-          <span className="absolute top-2 right-2 h-2 w-2 bg-primary rounded-full" />
-        </Button>
+        <NotificationBell />
         <Button variant="ghost" size="icon" onClick={toggleTheme} title="Toggle theme">
           {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </Button>

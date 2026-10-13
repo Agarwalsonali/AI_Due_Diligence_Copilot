@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Mail, Lock, AlertCircle, TrendingUp, Eye, EyeOff } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
-import { toast } from 'sonner';
+import { notify } from '@/lib/notify';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -27,11 +27,11 @@ export default function LoginPage() {
     setError('');
     try {
       await login(email, password);
-      toast.success('Logged in successfully');
+      notify.success('Logged in successfully');
     } catch (err: any) {
       const msg = err?.response?.data?.detail || err?.message || 'Failed to login';
       setError(msg);
-      toast.error('Login failed');
+      notify.error('Login failed', { description: msg });
     } finally {
       setLoading(false);
     }

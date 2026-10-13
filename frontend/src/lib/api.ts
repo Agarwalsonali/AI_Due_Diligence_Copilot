@@ -1,4 +1,5 @@
 import axios from "axios";
+import { notify } from "./notify";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -48,13 +49,32 @@ api.interceptors.request.use((config) => {
 });
 
 // Handle 401 responses
+let redirectingToLogin = false;
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 && typeof window !== "undefined") {
+      const path = window.location.pathname;
+      const onAuthPage = path === "/login" || path === "/register";
+      const hadSession = Boolean(localStorage.getItem("access_token"));
       localStorage.removeItem("access_token");
-      if (window.location.pathname !== "/login" && window.location.pathname !== "/register") {
-        window.location.href = "/login";
+
+      if (!onAuthPage && !redirectingToLogin) {
+        redirectingToLogin = true;
+        // Tell the user why they are being sent to the login screen instead of
+        // dropping them there silently. The short delay lets the toast render
+        // and the notification persist before the page unloads.
+        if (hadSession) {
+          notify.error("Session expired", {
+            description: "Please sign in again to continue.",
+          });
+          setTimeout(() => {
+            window.location.href = "/login";
+          }, 1200);
+        } else {
+          window.location.href = "/login";
+        }
       }
     }
     return Promise.reject(error);
