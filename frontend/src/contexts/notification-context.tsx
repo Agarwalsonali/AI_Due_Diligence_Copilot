@@ -17,6 +17,17 @@ import {
 const STORAGE_KEY = 'dd.notifications.v1';
 const MAX_NOTIFICATIONS = 50;
 
+// Auth events are toast-only now (NotifyOptions.transient). These titles were
+// recorded in the bell before that rule existed — drop them on load so old
+// sessions' login/logout activity cleans itself out of the notification center.
+const LEGACY_AUTH_TITLES = new Set([
+  'Logged in successfully',
+  'Login failed',
+  'Account created successfully',
+  'Registration failed',
+  'Session expired',
+]);
+
 interface NotificationsContextType {
   notifications: AppNotification[];
   unreadCount: number;
@@ -39,7 +50,10 @@ function loadStored(): AppNotification[] {
     if (!Array.isArray(parsed)) return [];
     return parsed.filter(
       (item): item is AppNotification =>
-        !!item && typeof item.id === 'string' && typeof item.title === 'string'
+        !!item &&
+        typeof item.id === 'string' &&
+        typeof item.title === 'string' &&
+        !LEGACY_AUTH_TITLES.has(item.title)
     );
   } catch {
     return [];

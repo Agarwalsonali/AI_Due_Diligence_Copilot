@@ -27,11 +27,11 @@ export default function LoginPage() {
     setError('');
     try {
       await login(email, password);
-      notify.success('Logged in successfully');
+      notify.success('Logged in successfully', { transient: true });
     } catch (err: any) {
       const msg = err?.response?.data?.detail || err?.message || 'Failed to login';
       setError(msg);
-      notify.error('Login failed', { description: msg });
+      notify.error('Login failed', { description: msg, transient: true });
     } finally {
       setLoading(false);
     }

@@ -18,6 +18,10 @@ export interface NotifyOptions {
   href?: string;
   /** Skip the transient toast and only record it in the notification center. */
   silent?: boolean;
+  /** Show only the toast and do NOT record it in the notification center.
+   *  Used for auth events (login/register/session expiry) so the bell holds
+   *  only website activity — documents, reports, analysis, etc. */
+  transient?: boolean;
 }
 
 type Listener = (notification: AppNotification) => void;
@@ -47,7 +51,9 @@ function push(
     );
   }
 
-  listeners.forEach((listener) => listener(notification));
+  if (!options.transient) {
+    listeners.forEach((listener) => listener(notification));
+  }
   return notification;
 }
 

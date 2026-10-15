@@ -34,11 +34,11 @@ export default function RegisterPage() {
     setError('');
     try {
       await register(name, email, password);
-      notify.success('Account created successfully');
+      notify.success('Account created successfully', { transient: true });
     } catch (err: any) {
       const msg = err?.response?.data?.detail || err?.message || 'Failed to register';
       setError(msg);
-      notify.error('Registration failed', { description: msg });
+      notify.error('Registration failed', { description: msg, transient: true });
     } finally {
       setLoading(false);
     }

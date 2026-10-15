@@ -68,6 +68,7 @@ api.interceptors.response.use(
         if (hadSession) {
           notify.error("Session expired", {
             description: "Please sign in again to continue.",
+            transient: true,
           });
           setTimeout(() => {
             window.location.href = "/login";
