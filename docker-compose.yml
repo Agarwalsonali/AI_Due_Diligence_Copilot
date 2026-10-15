@@ -51,7 +51,9 @@ services:
     ports:
       # Windows reserves host port ranges for Hyper-V/WinNAT (includes 3000 after
       # some reboots), so expose the frontend on a host port outside those ranges.
-      - "3200:3000"
+      # Current exclusion ranges: 3068-3167, 3168-3267, 3307-3406, 3502-3701
+      # (they shift between reboots) -> use 3407.
+      - "3407:3000"
     depends_on:
       - backend
 
