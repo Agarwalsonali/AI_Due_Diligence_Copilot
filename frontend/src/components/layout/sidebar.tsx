@@ -36,7 +36,12 @@ export function Sidebar() {
       )}
     >
       {/* Logo */}
-      <div className="p-4 flex items-center justify-between border-b border-border h-16">
+      <div
+        className={cn(
+          'flex items-center justify-between border-b border-border h-16',
+          collapsed ? 'px-1 py-4' : 'p-4'
+        )}
+      >
         {!collapsed && (
           <div className="flex items-center gap-2 overflow-hidden whitespace-nowrap">
             <div className="p-1.5 bg-primary/10 rounded-lg border border-primary/20">
@@ -46,17 +51,15 @@ export function Sidebar() {
           </div>
         )}
         {collapsed && (
-          <div className="w-full flex justify-center">
-            <div className="p-1.5 bg-primary/10 rounded-lg border border-primary/20">
-              <TrendingUp className="h-5 w-5 text-primary" />
-            </div>
+          <div className="p-1 bg-primary/10 rounded-lg border border-primary/20">
+            <TrendingUp className="h-4 w-4 text-primary" />
           </div>
         )}
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setCollapsed(!collapsed)}
-          className="hidden md:flex h-8 w-8 shrink-0"
+          className={cn('hidden md:flex shrink-0', collapsed ? 'h-6 w-6' : 'h-8 w-8')}
         >
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </Button>
