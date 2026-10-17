@@ -23,7 +23,13 @@ const navItems = [
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  /** On mobile (<md) the sidebar is an off-canvas drawer; this controls its visibility. */
+  mobileOpen?: boolean;
+  onClose?: () => void;
+}
+
+export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
@@ -31,8 +37,11 @@ export function Sidebar() {
   return (
     <div
       className={cn(
-        'flex flex-col h-screen border-r border-border bg-card transition-all duration-300',
-        collapsed ? 'w-16' : 'w-64'
+        'flex flex-col h-full border-r border-border bg-card transition-all duration-300',
+        // Mobile: off-canvas drawer, hidden until opened from the header menu.
+        'fixed inset-y-0 left-0 z-50 w-64 -translate-x-full md:static md:translate-x-0',
+        mobileOpen && 'translate-x-0 shadow-2xl',
+        collapsed ? 'md:w-16' : 'md:w-64'
       )}
     >
       {/* Logo */}
@@ -80,6 +89,7 @@ export function Sidebar() {
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               )}
               title={collapsed ? item.label : undefined}
+              onClick={onClose}
             >
               <item.icon className="h-5 w-5 shrink-0" />
               {!collapsed && <span>{item.label}</span>}

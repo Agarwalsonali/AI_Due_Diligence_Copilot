@@ -13,7 +13,7 @@ export default function ChatPage() {
 
       <Card className="overflow-hidden">
         <CardContent className="p-0">
-          <div className="h-[calc(100vh-220px)]">
+          <div className="h-[calc(100dvh-240px)] min-h-[420px]">
             <ChatInterface />
           </div>
         </CardContent>

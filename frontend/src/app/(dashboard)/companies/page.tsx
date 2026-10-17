@@ -40,8 +40,8 @@ export default function CompaniesPage() {
           <h1 className="text-3xl font-bold tracking-tight">Companies</h1>
           <p className="text-muted-foreground mt-1">Manage and analyze target companies</p>
         </div>
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-64">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 w-full sm:w-auto">
+          <div className="relative flex-1 min-w-0 sm:w-64">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"

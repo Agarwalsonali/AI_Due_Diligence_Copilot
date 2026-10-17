@@ -1,6 +1,6 @@
 'use client';
 
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
 import { useTheme } from '@/components/theme-provider';
@@ -16,7 +16,12 @@ const pageTitles: Record<string, string> = {
   settings: 'Settings',
 };
 
-export function Header() {
+interface HeaderProps {
+  /** Opens the mobile navigation drawer (below the md breakpoint). */
+  onMenuClick?: () => void;
+}
+
+export function Header({ onMenuClick }: HeaderProps) {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
 
@@ -33,9 +38,18 @@ export function Header() {
   };
 
   return (
-    <header className="h-14 border-b border-border bg-background/80 backdrop-blur-md flex items-center justify-between px-6 sticky top-0 z-10">
-      <div>
-        <h1 className="text-lg font-semibold tracking-tight">{getPageTitle()}</h1>
+    <header className="h-14 border-b border-border bg-background/80 backdrop-blur-md flex items-center justify-between px-4 sm:px-6 sticky top-0 z-10">
+      <div className="flex items-center gap-1 min-w-0">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden shrink-0"
+          onClick={onMenuClick}
+          aria-label="Open navigation menu"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+        <h1 className="text-lg font-semibold tracking-tight truncate">{getPageTitle()}</h1>
       </div>
 
       <div className="flex items-center gap-2">

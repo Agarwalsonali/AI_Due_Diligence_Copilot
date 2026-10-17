@@ -155,7 +155,7 @@ export function UploadDialog({ companyId, onSuccess }: UploadDialogProps) {
               <Label htmlFor="title">Document Title</Label>
               <Input id="title" value={title} onChange={e => setTitle(e.target.value)} placeholder="Enter a title..." />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label>Document Type</Label>
                 <Select value={docType} onValueChange={setDocType}>

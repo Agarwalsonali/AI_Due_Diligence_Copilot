@@ -96,11 +96,11 @@ export default function ReportsPage() {
           <CardDescription>Select a company to generate a due diligence report</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-end gap-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-4">
             <div className="flex-1">
               <label className="text-sm text-muted-foreground mb-2 block">Company</label>
               <Select value={selectedCompany} onValueChange={setSelectedCompany}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full sm:w-auto">
                   <SelectValue placeholder="Select a company" />
                 </SelectTrigger>
                 <SelectContent>
@@ -112,7 +112,7 @@ export default function ReportsPage() {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={handleGenerate} disabled={!selectedCompany || generating}>
+            <Button onClick={handleGenerate} disabled={!selectedCompany || generating} className="w-full sm:w-auto">
               {generating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileBarChart className="h-4 w-4 mr-2" />}
               {generating ? 'Generating...' : 'Generate Report'}
             </Button>
@@ -139,15 +139,15 @@ export default function ReportsPage() {
             <div className="space-y-3">
               {reports.map((report) => (
                 <div key={report.id}
-                  className="flex items-center justify-between p-4 bg-muted/30 border rounded-lg hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center gap-3">
-                    {getStatusIcon(report.status)}
-                    <div>
-                      <div className="font-medium text-sm">{report.title}</div>
+                  className="flex items-center justify-between gap-3 p-4 bg-muted/30 border rounded-lg hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <span className="shrink-0">{getStatusIcon(report.status)}</span>
+                    <div className="min-w-0">
+                      <div className="font-medium text-sm truncate">{report.title}</div>
                       <div className="text-xs text-muted-foreground">{formatDate(report.createdAt)}</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 shrink-0">
                     <Badge variant="outline" className={`text-xs ${
                       report.status === 'completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' :
                       report.status === 'generating' ? 'bg-primary/10 text-primary border-primary/20' :

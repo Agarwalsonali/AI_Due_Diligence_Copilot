@@ -26,7 +26,7 @@ export function SuggestedQuestions({ onSelect }: SuggestedQuestionsProps) {
           key={idx}
           variant="outline"
           size="sm"
-          className="h-auto py-2 px-3 text-xs text-left"
+          className="h-auto py-2 px-3 text-xs text-left whitespace-normal"
           onClick={() => onSelect(q.text)}
         >
           <q.icon className={`h-3.5 w-3.5 mr-2 shrink-0 ${q.color}`} />

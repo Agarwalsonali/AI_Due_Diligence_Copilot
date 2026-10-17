@@ -38,7 +38,7 @@ export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
         {isUser ? (
           <p className="text-sm leading-relaxed">{message.content}</p>
         ) : (
-          <div className="prose prose-sm max-w-none dark:prose-invert">
+          <div className="prose prose-sm max-w-none dark:prose-invert overflow-x-auto">
             <ReactMarkdown
               components={{
                 p: ({ children }) => <p className="text-sm leading-relaxed mb-2 last:mb-0">{children}</p>,

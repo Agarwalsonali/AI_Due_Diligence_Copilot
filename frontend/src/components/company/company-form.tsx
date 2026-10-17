@@ -65,7 +65,7 @@ export function CompanyForm({ onSuccess }: CompanyFormProps) {
           <DialogTitle>Add New Company</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Name *</Label>
               <Input id="name" value={formData.name}
@@ -79,7 +79,7 @@ export function CompanyForm({ onSuccess }: CompanyFormProps) {
                 className="uppercase" placeholder="AAPL" />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Industry</Label>
               <Select value={formData.industry}

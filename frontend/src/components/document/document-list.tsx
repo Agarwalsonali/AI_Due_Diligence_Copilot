@@ -121,12 +121,12 @@ export function DocumentList({ companyId, limit, hideActions }: DocumentListProp
   }
 
   return (
-    <div className="rounded-md border overflow-hidden">
+    <div className="rounded-md border overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Document</TableHead>
-            <TableHead>Type</TableHead>
+            <TableHead className="hidden sm:table-cell">Type</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="hidden md:table-cell">Pages</TableHead>
             <TableHead className="hidden md:table-cell">Date</TableHead>
@@ -147,7 +147,7 @@ export function DocumentList({ companyId, limit, hideActions }: DocumentListProp
                   </div>
                 </div>
               </TableCell>
-              <TableCell className="text-muted-foreground text-sm">{doc.documentType || 'Other'}</TableCell>
+              <TableCell className="text-muted-foreground text-sm hidden sm:table-cell">{doc.documentType || 'Other'}</TableCell>
               <TableCell>{getStatusBadge(doc.processingStatus)}</TableCell>
               <TableCell className="text-muted-foreground text-sm hidden md:table-cell">{doc.pageCount || '—'}</TableCell>
               <TableCell className="text-muted-foreground text-sm hidden md:table-cell">

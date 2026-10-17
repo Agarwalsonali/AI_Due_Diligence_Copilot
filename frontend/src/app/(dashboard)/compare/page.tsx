@@ -201,7 +201,7 @@ export default function ComparePage() {
             )}
 
             {result.comparison ? (
-              <div className="prose prose-sm max-w-none text-muted-foreground">
+              <div className="prose prose-sm max-w-none text-muted-foreground overflow-x-auto">
                 <ReactMarkdown>{result.comparison}</ReactMarkdown>
               </div>
             ) : (

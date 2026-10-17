@@ -48,10 +48,10 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       {/* Welcome Header */}
-      <section className="relative overflow-hidden rounded-xl bg-card border border-border p-8 shadow-sm">
+      <section className="relative overflow-hidden rounded-xl bg-card border border-border p-6 sm:p-8 shadow-sm">
         <div className="absolute top-0 right-0 p-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
         <div className="relative z-10">
-          <h2 className="text-3xl font-bold tracking-tight mb-2">
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2 break-words">
             Welcome back, {user?.name}
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl">
@@ -63,7 +63,7 @@ export default function DashboardPage() {
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2 space-y-0">
             <CardTitle className="text-sm font-medium text-muted-foreground">Companies</CardTitle>
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -168,13 +168,13 @@ export default function DashboardPage() {
               <div className="space-y-3">
                 {companies.slice(0, 5).map((company) => (
                   <Link key={company.id} href={`/companies/${company.id}`}
-                    className="flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center font-bold text-xs text-primary">
+                    className="flex items-center justify-between gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-9 w-9 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center font-bold text-xs text-primary">
                         {company.name.substring(0, 2).toUpperCase()}
                       </div>
-                      <div>
-                        <div className="font-medium text-sm">{company.name}</div>
+                      <div className="min-w-0">
+                        <div className="font-medium text-sm truncate">{company.name}</div>
                         <div className="text-xs text-muted-foreground">
                           {company.ticker && <span className="mr-2 font-mono">{company.ticker}</span>}
                           {company.industry || 'Unknown'}
@@ -212,15 +212,14 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {documents.slice(0, 5).map((doc) => (
-                  <div key={doc.id}
-                    className="flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-muted">
+                {documents.slice(0, 5).map((doc) => (                   <div key={doc.id}
+                    className="flex items-center justify-between gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="p-2 shrink-0 rounded-lg bg-muted">
                         <FileText className="h-4 w-4 text-muted-foreground" />
                       </div>
-                      <div>
-                        <div className="font-medium text-sm truncate max-w-[200px]">{doc.title}</div>
+                      <div className="min-w-0">
+                        <div className="font-medium text-sm truncate max-w-full sm:max-w-[200px]">{doc.title}</div>
                         <div className="text-xs text-muted-foreground">
                           {doc.documentType} {doc.createdAt && `• ${formatDate(doc.createdAt)}`}
                         </div>

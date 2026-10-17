@@ -149,7 +149,7 @@ export default function CompanyDetailPage() {
     return (
       <div className="space-y-6">
         <Skeleton className="h-12 w-1/3" />
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[1, 2, 3].map(i => <Skeleton key={i} className="h-24" />)}
         </div>
       </div>
@@ -164,15 +164,15 @@ export default function CompanyDetailPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="flex items-center gap-4">
-          <Link href="/companies">
+        <div className="flex items-center gap-4 min-w-0 flex-1">
+          <Link href="/companies" className="shrink-0">
             <Button variant="ghost" size="icon">
               <ArrowLeft className="w-5 h-5" />
             </Button>
           </Link>
           <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold">{company.name}</h1>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-2xl font-bold break-words">{company.name}</h1>
               {company.ticker && (
                 <Badge variant="outline" className="font-mono">{company.ticker}</Badge>
               )}
@@ -191,7 +191,7 @@ export default function CompanyDetailPage() {
 
       {/* Tabs */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="mb-6">
+        <TabsList className="mb-6 w-full justify-start overflow-x-auto scrollbar-hide">
           <TabsTrigger value="overview"><Activity className="w-4 h-4 mr-1.5" />Overview</TabsTrigger>
           <TabsTrigger value="documents"><FileText className="w-4 h-4 mr-1.5" />Documents</TabsTrigger>
           <TabsTrigger value="financials"><TrendingUp className="w-4 h-4 mr-1.5" />Financials</TabsTrigger>
@@ -206,7 +206,7 @@ export default function CompanyDetailPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Card className="lg:col-span-2">
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
                 <div>
                   <CardTitle>Executive Summary</CardTitle>
                   <CardDescription>AI-generated analysis overview</CardDescription>
@@ -282,7 +282,7 @@ export default function CompanyDetailPage() {
           {/* Quick Risk/Opportunity Overview */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
                 <div>
                   <CardTitle className="text-base">Top Risks</CardTitle>
                   <CardDescription>{risks.length} identified</CardDescription>
@@ -318,7 +318,7 @@ export default function CompanyDetailPage() {
             </Card>
 
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
                 <div>
                   <CardTitle className="text-base">Growth Opportunities</CardTitle>
                   <CardDescription>{opportunities.length} identified</CardDescription>
@@ -354,7 +354,7 @@ export default function CompanyDetailPage() {
         {/* ── Documents ────────────────────────────────────────────────────── */}
         <TabsContent value="documents">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <CardTitle>Documents</CardTitle>
                 <CardDescription>Upload and manage financial documents</CardDescription>
@@ -369,7 +369,7 @@ export default function CompanyDetailPage() {
 
         {/* ── Financials ───────────────────────────────────────────────────── */}
         <TabsContent value="financials" className="space-y-6">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <h2 className="text-xl font-semibold">Financial Analysis</h2>
             <Button variant="outline" size="sm" onClick={() => runAnalysis('financials')} disabled={analyzing.financials}>
               {analyzing.financials ? <RefreshCw className="w-4 h-4 animate-spin mr-1" /> : null}
@@ -450,7 +450,7 @@ export default function CompanyDetailPage() {
 
         {/* ── Risks ────────────────────────────────────────────────────────── */}
         <TabsContent value="risks" className="space-y-6">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <h2 className="text-xl font-semibold">Risk Analysis</h2>
             <Button variant="outline" size="sm" onClick={() => runAnalysis('risks')} disabled={analyzing.risks}>
               {analyzing.risks ? <RefreshCw className="w-4 h-4 animate-spin mr-1" /> : null}
@@ -476,7 +476,7 @@ export default function CompanyDetailPage() {
 
         {/* ── Opportunities ────────────────────────────────────────────────── */}
         <TabsContent value="opportunities" className="space-y-6">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <h2 className="text-xl font-semibold">Growth Opportunities</h2>
             <Button variant="outline" size="sm" onClick={() => runAnalysis('opportunities')} disabled={analyzing.opportunities}>
               {analyzing.opportunities ? <RefreshCw className="w-4 h-4 animate-spin mr-1" /> : null}
@@ -502,7 +502,7 @@ export default function CompanyDetailPage() {
 
         {/* ── Chat ─────────────────────────────────────────────────────────── */}
         <TabsContent value="chat">
-          <div className="h-[600px] rounded-xl border overflow-hidden">
+          <div className="h-[500px] sm:h-[600px] rounded-xl border overflow-hidden">
             <ChatInterface companyId={id} />
           </div>
         </TabsContent>
