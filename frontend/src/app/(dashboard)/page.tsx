@@ -61,7 +61,7 @@ export default function DashboardPage() {
       </section>
 
       {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2 space-y-0">
             <CardTitle className="text-sm font-medium text-muted-foreground">Companies</CardTitle>
@@ -100,7 +100,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Link href="/companies" className="block group">
           <Card className="h-full bg-primary/5 hover:bg-primary/10 border-primary/20 transition-colors cursor-pointer">
             <CardContent className="flex flex-col items-center justify-center p-6 text-center h-full space-y-3">
@@ -144,7 +144,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Recent Activity */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
