@@ -15,9 +15,11 @@ interface DocumentListProps {
   companyId?: string | number;
   limit?: number;
   hideActions?: boolean;
+  /** Bump this counter to force a refetch (e.g. after an upload from the parent page). */
+  refreshToken?: number;
 }
 
-export function DocumentList({ companyId, limit, hideActions }: DocumentListProps) {
+export function DocumentList({ companyId, limit, hideActions, refreshToken }: DocumentListProps) {
   const [docs, setDocs] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<number | null>(null);
@@ -37,7 +39,7 @@ export function DocumentList({ companyId, limit, hideActions }: DocumentListProp
 
   useEffect(() => {
     fetchDocs();
-  }, [fetchDocs]);
+  }, [fetchDocs, refreshToken]);
 
   // Poll for processing documents
   useEffect(() => {

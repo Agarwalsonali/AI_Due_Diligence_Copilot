@@ -1,17 +1,19 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UploadCloud, File, X, Loader2 } from 'lucide-react';
-import { documentAPI } from '@/lib/api';
+import { documentAPI, companyAPI } from '@/lib/api';
+import { Company } from '@/types';
 import { toast } from 'sonner';
 import { notify } from '@/lib/notify';
 
 interface UploadDialogProps {
+  /** When omitted, the dialog shows a company picker so it can be used from the global documents page. */
   companyId?: string | number;
   onSuccess?: () => void;
 }
@@ -27,7 +29,20 @@ export function UploadDialog({ companyId, onSuccess }: UploadDialogProps) {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState('');
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [selectedCompany, setSelectedCompany] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // The company is preselected when the dialog lives on a company page; on the
+  // global documents page we load the list and let the user pick one.
+  useEffect(() => {
+    if (!open || companyId) return;
+    companyAPI.list()
+      .then(data => setCompanies(Array.isArray(data) ? data : []))
+      .catch(() => toast.error('Failed to load companies'));
+  }, [open, companyId]);
+
+  const effectiveCompanyId = companyId ?? (selectedCompany || undefined);
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -49,7 +64,7 @@ export function UploadDialog({ companyId, onSuccess }: UploadDialogProps) {
   };
 
   const handleUpload = async () => {
-    if (!file || !companyId) return toast.error('File and company selection required');
+    if (!file || !effectiveCompanyId) return toast.error('File and company selection required');
 
     setUploading(true);
     setProgress(10);
@@ -57,7 +72,7 @@ export function UploadDialog({ companyId, onSuccess }: UploadDialogProps) {
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('company_id', String(companyId));
+    formData.append('company_id', String(effectiveCompanyId));
     formData.append('document_type', docType);
     formData.append('title', title || file.name);
     if (filingDate) formData.append('filing_date', filingDate);
@@ -97,6 +112,7 @@ export function UploadDialog({ companyId, onSuccess }: UploadDialogProps) {
     setFilingDate('');
     setProgress(0);
     setError('');
+    if (!companyId) setSelectedCompany('');
   };
 
   return (
@@ -112,6 +128,26 @@ export function UploadDialog({ companyId, onSuccess }: UploadDialogProps) {
         </DialogHeader>
 
         <div className="mt-4 space-y-4">
+          {/* Company picker — only when the dialog isn't already scoped to a company */}
+          {!companyId && (
+            <div className="space-y-1">
+              <Label>Company</Label>
+              <Select value={selectedCompany} onValueChange={setSelectedCompany}>
+                <SelectTrigger><SelectValue placeholder="Select a company..." /></SelectTrigger>
+                <SelectContent>
+                  {companies.map(c => (
+                    <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {companies.length === 0 && (
+                <p className="text-xs text-muted-foreground">
+                  No companies yet — add one from the Companies page first.
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Drop zone */}
           {!file ? (
             <div
@@ -188,7 +224,7 @@ export function UploadDialog({ companyId, onSuccess }: UploadDialogProps) {
             <Button variant="outline" onClick={() => setOpen(false)} disabled={uploading}>
               Cancel
             </Button>
-            <Button onClick={handleUpload} disabled={!file || uploading || !title}>
+            <Button onClick={handleUpload} disabled={!file || uploading || !title || !effectiveCompanyId}>
               {uploading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {uploading ? 'Uploading...' : 'Upload'}
             </Button>
