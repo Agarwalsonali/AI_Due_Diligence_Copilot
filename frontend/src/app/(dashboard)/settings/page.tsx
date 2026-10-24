@@ -86,24 +86,24 @@ export default function SettingsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Version</span>
-            <span className="font-mono">1.0.0</span>
+          <div className="flex justify-between gap-4">
+            <span className="text-muted-foreground shrink-0">Version</span>
+            <span className="font-mono text-right">1.0.0</span>
           </div>
           <Separator />
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Backend</span>
-            <span className="font-mono">FastAPI</span>
+          <div className="flex justify-between gap-4">
+            <span className="text-muted-foreground shrink-0">Backend</span>
+            <span className="font-mono text-right">FastAPI</span>
           </div>
           <Separator />
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Vector Store</span>
-            <span className="font-mono">Qdrant</span>
+          <div className="flex justify-between gap-4">
+            <span className="text-muted-foreground shrink-0">Vector Store</span>
+            <span className="font-mono text-right">Qdrant</span>
           </div>
           <Separator />
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Embeddings</span>
-            <span className="font-mono">text-embedding-3-small</span>
+          <div className="flex justify-between gap-4">
+            <span className="text-muted-foreground shrink-0">Embeddings</span>
+            <span className="font-mono text-right">text-embedding-3-small</span>
           </div>
         </CardContent>
       </Card>
