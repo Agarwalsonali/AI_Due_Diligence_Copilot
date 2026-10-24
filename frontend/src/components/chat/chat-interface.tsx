@@ -26,7 +26,11 @@ export function ChatInterface({ companyId }: ChatInterfaceProps) {
   };
 
   useEffect(() => {
-    scrollToBottom();
+    // Only autoscroll once there is a conversation. On the empty welcome state
+    // (especially on mobile, where the welcome content is taller than the
+    // viewport) scrolling to the end marker would cut off the heading at the
+    // top of the scroll area where it can't be reached again.
+    if (messages.length > 0) scrollToBottom();
   }, [messages]);
 
   const handleSend = async (text?: string) => {
@@ -91,18 +95,24 @@ export function ChatInterface({ companyId }: ChatInterfaceProps) {
       {/* Messages area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && !loading ? (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className="mb-8">
-              <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Send className="h-7 w-7 text-primary" />
+          // my-auto (not justify-center): auto margins center the welcome state
+          // when it fits, but let it start at the top and scroll normally when
+          // it is taller than the viewport (mobile), instead of clipping the
+          // heading out of reach above the scroll area.
+          <div className="flex flex-col items-center h-full text-center">
+            <div className="my-auto w-full flex flex-col items-center">
+              <div className="mb-8">
+                <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Send className="h-7 w-7 text-primary" />
+                </div>
+                <h3 className="text-lg font-medium mb-2">Ask anything about this company</h3>
+                <p className="text-sm text-muted-foreground max-w-md">
+                  Ask questions about financials, risks, opportunities, or any aspect.
+                  All answers are grounded in the uploaded documents.
+                </p>
               </div>
-              <h3 className="text-lg font-medium mb-2">Ask anything about this company</h3>
-              <p className="text-sm text-muted-foreground max-w-md">
-                Ask questions about financials, risks, opportunities, or any aspect.
-                All answers are grounded in the uploaded documents.
-              </p>
+              <SuggestedQuestions onSelect={handleSend} companyId={companyId} />
             </div>
-            <SuggestedQuestions onSelect={handleSend} companyId={companyId} />
           </div>
         ) : (
           <>
