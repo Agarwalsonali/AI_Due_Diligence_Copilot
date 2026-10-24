@@ -139,15 +139,15 @@ export default function ReportsPage() {
             <div className="space-y-3">
               {reports.map((report) => (
                 <div key={report.id}
-                  className="flex items-center justify-between gap-3 p-4 bg-muted/30 border rounded-lg hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                  className="flex flex-wrap items-center justify-between gap-3 p-4 bg-muted/30 border rounded-lg hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center gap-3 min-w-0 flex-1 basis-56">
                     <span className="shrink-0">{getStatusIcon(report.status)}</span>
                     <div className="min-w-0">
                       <div className="font-medium text-sm truncate">{report.title}</div>
-                      <div className="text-xs text-muted-foreground">{formatDate(report.createdAt)}</div>
+                      <div className="text-xs text-muted-foreground whitespace-nowrap">{formatDate(report.createdAt)}</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0 ml-auto">
                     <Badge variant="outline" className={`text-xs ${
                       report.status === 'completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' :
                       report.status === 'generating' ? 'bg-primary/10 text-primary border-primary/20' :
