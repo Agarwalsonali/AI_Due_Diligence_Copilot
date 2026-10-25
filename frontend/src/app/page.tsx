@@ -94,11 +94,11 @@ const faqs = [
 
 function Logo() {
   return (
-    <Link href="/" className="flex items-center gap-2">
-      <div className="p-1.5 bg-primary/10 rounded-lg border border-primary/20">
+    <Link href="/" className="flex items-center gap-2 shrink-0">
+      <div className="p-1.5 bg-primary/10 rounded-lg border border-primary/20 shrink-0">
         <TrendingUp className="h-5 w-5 text-primary" />
       </div>
-      <span className="font-semibold text-lg tracking-tight">DD Copilot</span>
+      <span className="font-semibold text-lg tracking-tight whitespace-nowrap">DD Copilot</span>
     </Link>
   );
 }
@@ -116,7 +116,8 @@ export default function LandingPage() {
             <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
           </nav>
           <div className="flex items-center gap-2">
-            <Button asChild variant="ghost">
+            {/* Hidden on the smallest screens — the hero and footer repeat both CTAs */}
+            <Button asChild variant="ghost" className="hidden sm:inline-flex">
               <Link href="/login">Sign in</Link>
             </Button>
             <Button asChild>
