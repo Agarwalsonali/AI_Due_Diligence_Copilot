@@ -57,10 +57,13 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && typeof window !== "undefined") {
       const path = window.location.pathname;
       const onAuthPage = path === "/login" || path === "/register";
+      // The landing page at / is public. A stale token from a previous session
+      // must not bounce visitors off it — just clear the token silently below.
+      const onPublicPage = onAuthPage || path === "/";
       const hadSession = Boolean(localStorage.getItem("access_token"));
       localStorage.removeItem("access_token");
 
-      if (!onAuthPage && !redirectingToLogin) {
+      if (!onPublicPage && !redirectingToLogin) {
         redirectingToLogin = true;
         // Tell the user why they are being sent to the login screen instead of
         // dropping them there silently. The short delay lets the toast render
