@@ -85,7 +85,7 @@ export default function RegisterPage() {
             <Label htmlFor="password">Password</Label>
             <div className="relative">
               <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input id="password" type={showPassword ? 'text' : 'password'} className="pl-10 pr-10" value={password}
+              <Input id="password" type={showPassword ? 'text' : 'password'} placeholder="Enter your password" className="pl-10 pr-10" value={password}
                 onChange={(e) => setPassword(e.target.value)} required minLength={8} />
               <button
                 type="button"
@@ -102,7 +102,7 @@ export default function RegisterPage() {
             <Label htmlFor="confirmPassword">Confirm Password</Label>
             <div className="relative">
               <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input id="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} className="pl-10 pr-10" value={confirmPassword}
+              <Input id="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} placeholder="Re-enter your password" className="pl-10 pr-10" value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)} required />
               <button
                 type="button"
