@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/layout/theme-toggle';
 import {
   TrendingUp, Building2, FileText, MessageSquare, GitCompare,
   FileBarChart, AlertTriangle, ArrowRight, Sparkles,
@@ -116,6 +117,7 @@ export default function LandingPage() {
             <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
           </nav>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             {/* Hidden on the smallest screens — the hero and footer repeat both CTAs */}
             <Button asChild variant="ghost" className="hidden sm:inline-flex">
               <Link href="/login">Sign in</Link>
