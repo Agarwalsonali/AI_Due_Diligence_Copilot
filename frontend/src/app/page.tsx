@@ -134,20 +134,20 @@ export default function LandingPage() {
         <div className="absolute top-0 left-1/2 h-[480px] w-[720px] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 pt-16 pb-20 sm:pt-24 sm:pb-28">
           <div className="grid items-center gap-12 lg:grid-cols-2">
-            <div className="text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary mb-6">
+            <div className="landing-hero-copy text-center lg:text-left">
+              <div className="landing-reveal landing-reveal-delay-1 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary mb-6">
                 <Sparkles className="h-3.5 w-3.5" />
                 AI-powered due diligence workspace
               </div>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
+              <h1 className="landing-reveal landing-reveal-delay-2 text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
                 Turn annual reports into <span className="text-primary">answers</span>
               </h1>
-              <p className="mt-5 text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0">
+              <p className="landing-reveal landing-reveal-delay-3 mt-5 text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0">
                 DD Copilot reads your filings, builds company profiles and answers every
                 question with sources — so you can find risks and opportunities in hours,
                 not weeks.
               </p>
-              <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
+              <div className="landing-reveal landing-reveal-delay-4 mt-8 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
                 <Button asChild size="lg">
                   <Link href="/register">
                     Get started free <ArrowRight className="ml-2 h-4 w-4" />
@@ -160,43 +160,73 @@ export default function LandingPage() {
             </div>
 
             {/* Product mock */}
-            <div className="rounded-2xl border border-border bg-card shadow-2xl p-4 sm:p-6 space-y-4">
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { label: 'Companies', value: '12' },
-                  { label: 'Documents', value: '48' },
-                  { label: 'Processed', value: '46' },
-                ].map((s) => (
-                  <div key={s.label} className="rounded-lg border border-border bg-background p-3">
-                    <div className="text-xs text-muted-foreground">{s.label}</div>
-                    <div className="text-xl font-bold">{s.value}</div>
-                  </div>
-                ))}
-              </div>
-              <div className="rounded-lg border border-border bg-background p-4 space-y-3">
-                <div className="flex justify-end">
-                  <div className="rounded-lg bg-primary/15 border border-primary/20 px-3 py-2 text-sm max-w-[85%]">
-                    What are the biggest risks facing this company?
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <div className="p-1.5 rounded-md bg-primary/10 border border-primary/20 shrink-0 h-fit">
-                    <MessageSquare className="h-3.5 w-3.5 text-primary" />
-                  </div>
-                  <div className="text-sm text-muted-foreground leading-relaxed">
-                    Concentration risk in the top three customers and thin free-cash-flow
-                    margins, based on{' '}
-                    <span className="text-primary underline underline-offset-2">p. 42</span>{' '}
-                    of the latest annual report.
-                  </div>
+            <div className="landing-3d-stage">
+              <div className="landing-orbit landing-orbit-left" aria-hidden="true">
+                <div className="landing-orbit-card landing-orbit-card-blue">
+                  <TrendingUp className="h-4 w-4" />
+                  <span>+24.8% growth</span>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {['Risk analysis', 'Financial health', 'PDF report'].map((chip) => (
-                  <span key={chip} className="rounded-full border border-border bg-muted/40 px-2.5 py-1 text-xs text-muted-foreground">
-                    {chip}
-                  </span>
-                ))}
+              <div className="landing-orbit landing-orbit-right" aria-hidden="true">
+                <div className="landing-orbit-card landing-orbit-card-dark">
+                  <span className="landing-status-dot" />
+                  <span>AI analysis live</span>
+                </div>
+              </div>
+              <div className="landing-core" aria-hidden="true">
+                <div className="landing-core-ring landing-core-ring-one" />
+                <div className="landing-core-ring landing-core-ring-two" />
+                <div className="landing-core-dot" />
+              </div>
+              <div className="landing-product-preview rounded-2xl border border-border bg-card shadow-2xl p-4 sm:p-6 space-y-4">
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { label: 'Companies', value: '12' },
+                    { label: 'Documents', value: '48' },
+                    { label: 'Processed', value: '46' },
+                  ].map((s) => (
+                    <div key={s.label} className="rounded-lg border border-border bg-background p-3">
+                      <div className="text-xs text-muted-foreground">{s.label}</div>
+                      <div className="text-xl font-bold">{s.value}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="landing-insight-panel rounded-lg border border-border bg-background p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-muted-foreground">Portfolio signal</span>
+                    <span className="landing-signal-badge">STRONG</span>
+                  </div>
+                  <div className="landing-chart flex items-end gap-1.5 h-10">
+                    {[35, 48, 42, 64, 58, 76, 92].map((height, i) => (
+                      <span key={i} style={{ height: `${height}%` }} />
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-border bg-background p-4 space-y-3">
+                  <div className="flex justify-end">
+                    <div className="rounded-lg bg-primary/15 border border-primary/20 px-3 py-2 text-sm max-w-[85%]">
+                      What are the biggest risks facing this company?
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="p-1.5 rounded-md bg-primary/10 border border-primary/20 shrink-0 h-fit">
+                      <MessageSquare className="h-3.5 w-3.5 text-primary" />
+                    </div>
+                    <div className="text-sm text-muted-foreground leading-relaxed">
+                      Concentration risk in the top three customers and thin free-cash-flow
+                      margins, based on{' '}
+                      <span className="text-primary underline underline-offset-2">p. 42</span>{' '}
+                      of the latest annual report.
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {['Risk analysis', 'Financial health', 'PDF report'].map((chip) => (
+                      <span key={chip} className="rounded-full border border-border bg-muted/40 px-2.5 py-1 text-xs text-muted-foreground">
+                        {chip}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -211,8 +241,8 @@ export default function LandingPage() {
             { value: '2–4', label: 'Companies compared side by side' },
             { value: 'PDF', label: 'Reports you can export and share' },
             { value: '100%', label: 'Answers grounded in your own documents' },
-          ].map((stat) => (
-            <div key={stat.label}>
+          ].map((stat, i) => (
+            <div key={stat.label} className={`landing-reveal landing-reveal-delay-${i + 1}`}>
               <div className="text-3xl font-bold text-primary">{stat.value}</div>
               <div className="mt-1 text-xs sm:text-sm text-muted-foreground">{stat.label}</div>
             </div>
@@ -222,7 +252,7 @@ export default function LandingPage() {
 
       {/* Features */}
       <section id="features" className="mx-auto max-w-6xl px-4 sm:px-6 py-16 sm:py-24 scroll-mt-20">
-        <div className="max-w-2xl mx-auto text-center">
+        <div className="landing-reveal max-w-2xl mx-auto text-center">
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
             Everything you need to diligence a company
           </h2>
@@ -231,8 +261,8 @@ export default function LandingPage() {
           </p>
         </div>
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map((f) => (
-            <div key={f.title} className="rounded-xl border border-border bg-card p-6 hover:border-primary/30 hover:shadow-md transition-all">
+          {features.map((f, i) => (
+            <div key={f.title} className={`landing-reveal landing-reveal-delay-${(i % 4) + 1} rounded-xl border border-border bg-card p-6 hover:border-primary/30 hover:shadow-md transition-all`}>
               <div className="p-2.5 w-fit rounded-lg bg-primary/10 border border-primary/20 mb-4">
                 <f.icon className="h-5 w-5 text-primary" />
               </div>
@@ -246,7 +276,7 @@ export default function LandingPage() {
       {/* How it works */}
       <section id="how-it-works" className="border-y border-border bg-card/50 scroll-mt-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 py-16 sm:py-24">
-          <div className="max-w-2xl mx-auto text-center">
+          <div className="landing-reveal max-w-2xl mx-auto text-center">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">How it works</h2>
             <p className="mt-4 text-muted-foreground text-lg">
               Four steps from an empty workspace to a finished report.
@@ -254,7 +284,7 @@ export default function LandingPage() {
           </div>
           <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {steps.map((step, i) => (
-              <div key={step.title} className="text-center">
+              <div key={step.title} className={`landing-reveal landing-reveal-delay-${i + 1} text-center`}>
                 <div className="mx-auto h-10 w-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center font-bold text-primary">
                   {i + 1}
                 </div>
@@ -268,12 +298,12 @@ export default function LandingPage() {
 
       {/* FAQ */}
       <section id="faq" className="mx-auto max-w-3xl px-4 sm:px-6 py-16 sm:py-24 scroll-mt-20">
-        <div className="text-center">
+        <div className="landing-reveal text-center">
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Frequently asked questions</h2>
         </div>
         <div className="mt-10 space-y-3">
-          {faqs.map((item) => (
-            <details key={item.q} className="group rounded-xl border border-border bg-card px-5 py-4 [&_summary::-webkit-details-marker]:hidden">
+          {faqs.map((item, i) => (
+            <details key={item.q} className={`landing-reveal landing-reveal-delay-${(i % 4) + 1} group rounded-xl border border-border bg-card px-5 py-4 [&_summary::-webkit-details-marker]:hidden`}>
               <summary className="flex cursor-pointer items-center justify-between gap-4 font-medium text-sm sm:text-base">
                 {item.q}
                 <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" />
@@ -286,7 +316,7 @@ export default function LandingPage() {
 
       {/* CTA */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6 pb-16 sm:pb-24">
-        <div className="rounded-2xl border border-primary/20 bg-primary/10 px-6 py-12 sm:px-12 text-center">
+        <div className="landing-reveal rounded-2xl border border-primary/20 bg-primary/10 px-6 py-12 sm:px-12 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Ready to start your due diligence?</h2>
           <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
             Create a workspace, add your first company and see what your filings have been
