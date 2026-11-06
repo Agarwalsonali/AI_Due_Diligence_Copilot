@@ -64,7 +64,7 @@ export default function SettingsPage() {
           <CardDescription>Customize the application theme</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-medium">Theme</p>
               <p className="text-sm text-muted-foreground">Current: {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</p>

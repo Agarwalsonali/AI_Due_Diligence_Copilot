@@ -119,7 +119,7 @@ export default function ComparePage() {
           ) : companies.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">No companies found. Add companies first.</div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 min-[400px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {companies.map((company) => {
                 const selected = selectedIds.includes(company.id);
                 return (

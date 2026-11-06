@@ -122,8 +122,10 @@ export function DocumentList({ companyId, limit, hideActions, refreshToken }: Do
     );
   }
 
+  // Tighter cell padding on small screens keeps Document, Status and Actions
+  // on-screen together instead of forcing a sideways scroll to reach a row.
   return (
-    <div className="rounded-md border overflow-x-auto">
+    <div className="rounded-md border overflow-x-auto [&_th]:px-2 [&_td]:px-2 sm:[&_th]:px-4 sm:[&_td]:px-4">
       <Table>
         <TableHeader>
           <TableRow>
@@ -132,13 +134,20 @@ export function DocumentList({ companyId, limit, hideActions, refreshToken }: Do
             <TableHead>Status</TableHead>
             <TableHead className="hidden md:table-cell">Pages</TableHead>
             <TableHead className="hidden md:table-cell">Date</TableHead>
-            {!hideActions && <TableHead className="text-right">Actions</TableHead>}
+            {!hideActions && (
+              <TableHead className="text-right">
+                {/* The label only widens the column on mobile; the icon is enough there. */}
+                <span className="sr-only sm:not-sr-only">Actions</span>
+              </TableHead>
+            )}
           </TableRow>
         </TableHeader>
         <TableBody>
           {docs.map(doc => (
             <TableRow key={doc.id}>
-              <TableCell className="font-medium">
+              {/* max-w-0 lets this column absorb the leftover width so long titles
+                  truncate instead of pushing the row (and its actions) off-screen. */}
+              <TableCell className="font-medium max-w-0 sm:max-w-none">
                 <div className="flex items-center gap-2">
                   <FileText className="w-4 h-4 text-primary shrink-0" />
                   <div>

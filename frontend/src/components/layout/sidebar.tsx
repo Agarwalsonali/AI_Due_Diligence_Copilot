@@ -47,23 +47,21 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
       {/* Logo */}
       <div
         className={cn(
-          'flex items-center justify-between border-b border-border h-16',
-          collapsed ? 'px-1 py-4' : 'p-4'
+          'flex items-center justify-between border-b border-border h-16 p-4',
+          collapsed && 'md:px-1 md:py-4'
         )}
       >
-        {!collapsed && (
-          <div className="flex items-center gap-2 overflow-hidden whitespace-nowrap">
-            <div className="p-1.5 bg-primary/10 rounded-lg border border-primary/20">
-              <TrendingUp className="h-5 w-5 text-primary" />
-            </div>
-            <span className="font-semibold text-lg tracking-tight">DD Copilot</span>
+        {/* Collapsing only shrinks the md+ rail. On mobile the drawer always shows
+            the full logo, labels and logout — its collapse toggle is hidden there. */}
+        <div className={cn('flex items-center gap-2 overflow-hidden whitespace-nowrap', collapsed && 'md:hidden')}>
+          <div className="p-1.5 bg-primary/10 rounded-lg border border-primary/20">
+            <TrendingUp className="h-5 w-5 text-primary" />
           </div>
-        )}
-        {collapsed && (
-          <div className="p-1 bg-primary/10 rounded-lg border border-primary/20">
-            <TrendingUp className="h-4 w-4 text-primary" />
-          </div>
-        )}
+          <span className="font-semibold text-lg tracking-tight">DD Copilot</span>
+        </div>
+        <div className={cn('p-1 bg-primary/10 rounded-lg border border-primary/20', collapsed ? 'hidden md:block' : 'hidden')}>
+          <TrendingUp className="h-4 w-4 text-primary" />
+        </div>
         <Button
           variant="ghost"
           size="icon"
@@ -92,7 +90,7 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
               onClick={onClose}
             >
               <item.icon className="h-5 w-5 shrink-0" />
-              {!collapsed && <span>{item.label}</span>}
+              <span className={cn(collapsed && 'md:hidden')}>{item.label}</span>
             </Link>
           );
         })}
@@ -106,23 +104,19 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
               {user?.name?.charAt(0).toUpperCase() || 'U'}
             </AvatarFallback>
           </Avatar>
-          {!collapsed && (
-            <>
-              <div className="flex-1 min-w-0 overflow-hidden">
-                <p className="text-sm font-medium truncate">{user?.name || 'User'}</p>
-                <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={logout}
-                title="Logout"
-                className="text-muted-foreground hover:text-destructive shrink-0"
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </>
-          )}
+          <div className={cn('flex-1 min-w-0 overflow-hidden', collapsed && 'md:hidden')}>
+            <p className="text-sm font-medium truncate">{user?.name || 'User'}</p>
+            <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={logout}
+            title="Logout"
+            className={cn('text-muted-foreground hover:text-destructive shrink-0', collapsed && 'md:hidden')}
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
         </div>
       </div>
     </div>

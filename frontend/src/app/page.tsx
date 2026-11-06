@@ -341,7 +341,7 @@ export default function LandingPage() {
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Logo />
           </div>
-          <nav className="flex items-center gap-6 text-sm text-muted-foreground">
+          <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
             <a href="#features" className="hover:text-foreground transition-colors">Features</a>
             <a href="#how-it-works" className="hover:text-foreground transition-colors">How it works</a>
             <Link href="/login" className="hover:text-foreground transition-colors">Sign in</Link>
