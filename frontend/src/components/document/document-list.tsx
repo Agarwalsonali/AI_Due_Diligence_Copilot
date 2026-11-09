@@ -125,7 +125,7 @@ export function DocumentList({ companyId, limit, hideActions, refreshToken }: Do
   // Tighter cell padding on small screens keeps Document, Status and Actions
   // on-screen together instead of forcing a sideways scroll to reach a row.
   return (
-    <div className="rounded-md border overflow-x-auto [&_th]:px-2 [&_td]:px-2 sm:[&_th]:px-4 sm:[&_td]:px-4">
+    <div className="rounded-md border overflow-x-auto max-sm:[&_th]:px-1.5 max-sm:[&_td]:px-1.5 max-sm:[&_th:last-child]:pr-0 max-sm:[&_td:last-child]:pr-0">
       <Table>
         <TableHeader>
           <TableRow>

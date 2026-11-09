@@ -56,7 +56,9 @@ export function NotificationBell() {
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" className="w-[360px] p-0">
+      {/* The menu must fit narrow phones: at 320px the fixed 360px panel was
+          clipped 40px past the right edge. */}
+      <DropdownMenuContent align="end" collisionPadding={8} className="w-[360px] max-w-[calc(100vw-1.5rem)] p-0">
         <div className="flex items-center justify-between px-3 py-2 border-b border-border">
           <p className="text-sm font-semibold">Notifications</p>
           <div className="flex items-center gap-1">

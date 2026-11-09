@@ -191,7 +191,9 @@ export default function CompanyDetailPage() {
 
       {/* Tabs */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="mb-6 w-full justify-start overflow-x-auto scrollbar-hide">
+        {/* Wraps instead of scrolling sideways: on phones and narrow windows the
+            hidden tabs were unreachable behind a scrollbar-less swipe area. */}
+        <TabsList className="mb-6 h-auto w-full flex-wrap justify-start gap-1 py-1 [&_svg]:hidden sm:[&_svg]:block">
           <TabsTrigger value="overview"><Activity className="w-4 h-4 mr-1.5" />Overview</TabsTrigger>
           <TabsTrigger value="documents"><FileText className="w-4 h-4 mr-1.5" />Documents</TabsTrigger>
           <TabsTrigger value="financials"><TrendingUp className="w-4 h-4 mr-1.5" />Financials</TabsTrigger>
