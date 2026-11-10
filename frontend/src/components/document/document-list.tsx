@@ -130,10 +130,12 @@ export function DocumentList({ companyId, limit, hideActions, refreshToken }: Do
         <TableHeader>
           <TableRow>
             <TableHead>Document</TableHead>
-            <TableHead className="hidden sm:table-cell">Type</TableHead>
+            {/* From md up the persistent sidebar takes 256px, so Type/Pages/Date
+                only come back at lg where all six columns fit again. */}
+            <TableHead className="hidden sm:table-cell md:hidden lg:table-cell">Type</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead className="hidden md:table-cell">Pages</TableHead>
-            <TableHead className="hidden md:table-cell">Date</TableHead>
+            <TableHead className="hidden lg:table-cell">Pages</TableHead>
+            <TableHead className="hidden lg:table-cell">Date</TableHead>
             {!hideActions && (
               <TableHead className="text-right">
                 {/* The label only widens the column on mobile; the icon is enough there. */}
@@ -158,10 +160,10 @@ export function DocumentList({ companyId, limit, hideActions, refreshToken }: Do
                   </div>
                 </div>
               </TableCell>
-              <TableCell className="text-muted-foreground text-sm hidden sm:table-cell">{doc.documentType || 'Other'}</TableCell>
+              <TableCell className="text-muted-foreground text-sm hidden sm:table-cell md:hidden lg:table-cell">{doc.documentType || 'Other'}</TableCell>
               <TableCell>{getStatusBadge(doc.processingStatus)}</TableCell>
-              <TableCell className="text-muted-foreground text-sm hidden md:table-cell">{doc.pageCount || '—'}</TableCell>
-              <TableCell className="text-muted-foreground text-sm hidden md:table-cell">
+              <TableCell className="text-muted-foreground text-sm hidden lg:table-cell">{doc.pageCount || '—'}</TableCell>
+              <TableCell className="text-muted-foreground text-sm hidden lg:table-cell">
                 {doc.createdAt ? formatDate(doc.createdAt) : '—'}
               </TableCell>
               {!hideActions && (
