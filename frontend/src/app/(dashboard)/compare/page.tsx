@@ -112,6 +112,8 @@ export default function ComparePage() {
           <CardDescription>Click to select ({selectedIds.length}/4)</CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Two columns while the sidebar is docked (md) keep company names
+              readable; the wider layout only starts at lg. */}
           {loading ? (
             <div className="flex justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -119,7 +121,7 @@ export default function ComparePage() {
           ) : companies.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">No companies found. Add companies first.</div>
           ) : (
-            <div className="grid grid-cols-1 min-[400px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 min-[400px]:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {companies.map((company) => {
                 const selected = selectedIds.includes(company.id);
                 return (
