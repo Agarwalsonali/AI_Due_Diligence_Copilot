@@ -117,7 +117,11 @@ export default function LandingPage() {
             <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
           </nav>
           <div className="flex items-center gap-2">
-            <ThemeToggle />
+            {/* Below ~310px the wordmark plus the CTA overflows the row, so the
+                theme toggle yields its space; Settings still exposes it. */}
+            <span className="hidden min-[310px]:block">
+              <ThemeToggle />
+            </span>
             {/* Hidden on the smallest screens — the hero and footer repeat both CTAs */}
             <Button asChild variant="ghost" className="hidden sm:inline-flex">
               <Link href="/login">Sign in</Link>

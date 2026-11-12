@@ -133,7 +133,9 @@ export function DocumentList({ companyId, limit, hideActions, refreshToken }: Do
             {/* From md up the persistent sidebar takes 256px, so Type/Pages/Date
                 only come back at lg where all six columns fit again. */}
             <TableHead className="hidden sm:table-cell md:hidden lg:table-cell">Type</TableHead>
-            <TableHead>Status</TableHead>
+            {/* Below ~310px the status badge alone forces the row wider than the
+                card, which hides the delete action behind a scrollbar. */}
+            <TableHead className="max-[310px]:hidden">Status</TableHead>
             <TableHead className="hidden lg:table-cell">Pages</TableHead>
             <TableHead className="hidden lg:table-cell">Date</TableHead>
             {!hideActions && (
@@ -161,7 +163,7 @@ export function DocumentList({ companyId, limit, hideActions, refreshToken }: Do
                 </div>
               </TableCell>
               <TableCell className="text-muted-foreground text-sm hidden sm:table-cell md:hidden lg:table-cell">{doc.documentType || 'Other'}</TableCell>
-              <TableCell>{getStatusBadge(doc.processingStatus)}</TableCell>
+              <TableCell className="max-[310px]:hidden">{getStatusBadge(doc.processingStatus)}</TableCell>
               <TableCell className="text-muted-foreground text-sm hidden lg:table-cell">{doc.pageCount || '—'}</TableCell>
               <TableCell className="text-muted-foreground text-sm hidden lg:table-cell">
                 {doc.createdAt ? formatDate(doc.createdAt) : '—'}

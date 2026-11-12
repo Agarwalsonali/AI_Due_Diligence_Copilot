@@ -169,19 +169,22 @@ export default function DashboardPage() {
                 {companies.slice(0, 5).map((company) => (
                   <Link key={company.id} href={`/companies/${company.id}`}
                     className="flex items-center justify-between gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
-                    <div className="flex items-center gap-3 min-w-0">
+                    {/* The text column takes the leftover width and truncates, so a
+                        long industry name cannot wrap into a tall word tower on
+                        phones; the doc count only has room from sm up. */}
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
                       <div className="h-9 w-9 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center font-bold text-xs text-primary">
                         {company.name.substring(0, 2).toUpperCase()}
                       </div>
                       <div className="min-w-0">
                         <div className="font-medium text-sm truncate">{company.name}</div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-xs text-muted-foreground truncate">
                           {company.ticker && <span className="mr-2 font-mono">{company.ticker}</span>}
                           {company.industry || 'Unknown'}
                         </div>
                       </div>
                     </div>
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="text-xs shrink-0 hidden sm:inline-flex">
                       {company.documentCount || 0} docs
                     </Badge>
                   </Link>
@@ -214,18 +217,18 @@ export default function DashboardPage() {
               <div className="space-y-3">
                 {documents.slice(0, 5).map((doc) => (                   <div key={doc.id}
                     className="flex items-center justify-between gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
                       <div className="p-2 shrink-0 rounded-lg bg-muted">
                         <FileText className="h-4 w-4 text-muted-foreground" />
                       </div>
                       <div className="min-w-0">
                         <div className="font-medium text-sm truncate max-w-full sm:max-w-[200px]">{doc.title}</div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-xs text-muted-foreground truncate">
                           {doc.documentType} {doc.createdAt && `• ${formatDate(doc.createdAt)}`}
                         </div>
                       </div>
                     </div>
-                    <Badge variant="outline" className={`text-xs ${getStatusColor(doc.processingStatus)}`}>
+                    <Badge variant="outline" className={`text-xs shrink-0 hidden sm:inline-flex ${getStatusColor(doc.processingStatus)}`}>
                       {doc.processingStatus}
                     </Badge>
                   </div>
