@@ -133,9 +133,9 @@ export function DocumentList({ companyId, limit, hideActions, refreshToken }: Do
             {/* From md up the persistent sidebar takes 256px, so Type/Pages/Date
                 only come back at lg where all six columns fit again. */}
             <TableHead className="hidden sm:table-cell md:hidden lg:table-cell">Type</TableHead>
-            {/* Below ~310px the status badge alone forces the row wider than the
-                card, which hides the delete action behind a scrollbar. */}
-            <TableHead className="max-[310px]:hidden">Status</TableHead>
+            {/* On phones the badge is shown under the title instead: as its own
+                column it took half the row and squeezed the title to a few letters. */}
+            <TableHead className="hidden sm:table-cell">Status</TableHead>
             <TableHead className="hidden lg:table-cell">Pages</TableHead>
             <TableHead className="hidden lg:table-cell">Date</TableHead>
             {!hideActions && (
@@ -151,21 +151,26 @@ export function DocumentList({ companyId, limit, hideActions, refreshToken }: Do
             <TableRow key={doc.id}>
               {/* max-w-0 lets this column absorb the leftover width so long titles
                   truncate instead of pushing the row (and its actions) off-screen. */}
-              <TableCell className="font-medium max-w-0 sm:max-w-none">
+              <TableCell className="font-medium max-sm:w-full max-w-0 sm:max-w-none">
                 <div className="flex items-center gap-2">
                   <FileText className="w-4 h-4 text-primary shrink-0" />
-                  <div>
+                  <div className="min-w-0">
                     <span className="line-clamp-1">{doc.title}</span>
+                    {/* No `block` here: it overrides line-clamp's display and the
+                        message then wraps into a tall column on phones. */}
                     {doc.errorMessage && (
-                      <span className="text-xs text-destructive line-clamp-1 block mt-0.5">{doc.errorMessage}</span>
+                      <span className="text-xs text-destructive line-clamp-1 mt-0.5">{doc.errorMessage}</span>
                     )}
+                    <div className="mt-1 sm:hidden">{getStatusBadge(doc.processingStatus)}</div>
                   </div>
                 </div>
               </TableCell>
               <TableCell className="text-muted-foreground text-sm hidden sm:table-cell md:hidden lg:table-cell">{doc.documentType || 'Other'}</TableCell>
-              <TableCell className="max-[310px]:hidden">{getStatusBadge(doc.processingStatus)}</TableCell>
+              <TableCell className="w-0 hidden sm:table-cell">{getStatusBadge(doc.processingStatus)}</TableCell>
               <TableCell className="text-muted-foreground text-sm hidden lg:table-cell">{doc.pageCount || '—'}</TableCell>
-              <TableCell className="text-muted-foreground text-sm hidden lg:table-cell">
+              {/* nowrap keeps the date on one line: wrapped into the squeezed
+                  column it made every row three lines tall. */}
+              <TableCell className="text-muted-foreground text-sm hidden lg:table-cell whitespace-nowrap">
                 {doc.createdAt ? formatDate(doc.createdAt) : '—'}
               </TableCell>
               {!hideActions && (
