@@ -90,8 +90,10 @@ export function DocumentList({ companyId, limit, hideActions, refreshToken }: Do
       case 'completed':
         return <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">Completed</Badge>;
       case 'processing':
+        // inline-flex, not flex: a block-level badge stretched across the whole
+        // cell instead of hugging its label like the other statuses.
         return (
-          <Badge className="bg-primary/10 text-primary border-primary/20 flex items-center gap-1.5">
+          <Badge className="bg-primary/10 text-primary border-primary/20 inline-flex items-center gap-1.5">
             <span className="relative flex h-1.5 w-1.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
