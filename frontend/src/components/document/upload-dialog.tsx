@@ -122,7 +122,7 @@ export function UploadDialog({ companyId, onSuccess }: UploadDialogProps) {
           <UploadCloud className="w-4 h-4 mr-2" /> Upload Document
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[550px]">
+      <DialogContent className="sm:max-w-[550px] pb-0">
         <DialogHeader>
           <DialogTitle>Upload Document</DialogTitle>
         </DialogHeader>
@@ -220,7 +220,9 @@ export function UploadDialog({ companyId, onSuccess }: UploadDialogProps) {
             </div>
           )}
 
-          <div className="flex justify-end gap-2 pt-2">
+          {/* Sticky so Cancel/Upload stay reachable while the fields scroll on
+              short screens, instead of sitting below the fold. */}
+          <div className="sticky bottom-0 -mx-6 flex justify-end gap-2 border-t bg-background px-6 py-3">
             <Button variant="outline" onClick={() => setOpen(false)} disabled={uploading}>
               Cancel
             </Button>

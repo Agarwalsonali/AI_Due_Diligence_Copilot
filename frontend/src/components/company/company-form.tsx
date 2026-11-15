@@ -60,7 +60,7 @@ export function CompanyForm({ onSuccess }: CompanyFormProps) {
           <Plus className="w-4 h-4 mr-2" /> Add Company
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] pb-0">
         <DialogHeader>
           <DialogTitle>Add New Company</DialogTitle>
         </DialogHeader>
@@ -107,7 +107,9 @@ export function CompanyForm({ onSuccess }: CompanyFormProps) {
               onChange={e => setFormData({ ...formData, description: e.target.value })}
               className="min-h-[80px]" placeholder="Brief description of the company..." />
           </div>
-          <div className="flex justify-end gap-2 pt-2">
+          {/* Sticky so Cancel/Add stay reachable while the fields scroll on
+              short screens, instead of sitting below the fold. */}
+          <div className="sticky bottom-0 -mx-6 flex justify-end gap-2 border-t bg-background px-6 py-3">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
