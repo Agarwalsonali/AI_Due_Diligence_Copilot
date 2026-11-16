@@ -151,7 +151,7 @@ export function UploadDialog({ companyId, onSuccess }: UploadDialogProps) {
           {/* Drop zone */}
           {!file ? (
             <div
-              className="border-2 border-dashed rounded-xl p-10 text-center hover:bg-muted/50 hover:border-primary/50 transition-colors cursor-pointer"
+              className="border-2 border-dashed rounded-xl p-6 sm:p-10 text-center hover:bg-muted/50 hover:border-primary/50 transition-colors cursor-pointer"
               onDragOver={e => e.preventDefault()}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
