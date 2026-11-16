@@ -314,6 +314,40 @@
 .landing-chart span:nth-child(6) { animation-delay: 400ms; }
 .landing-chart span:nth-child(7) { animation-delay: 480ms; }
 
+@keyframes landing-orbit-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@media (max-width: 640px) {
+  .landing-3d-stage { min-height: 340px; }
+  .landing-orbit-card { font-size: 0.62rem; }
+
+  /* The pills straddle the preview's side edges on desktop, but the preview is
+     full-width on a phone, so the orbit travel pushed them off-screen. Anchor
+     them to the card's top corners and bob vertically instead. */
+  .landing-orbit { top: 0; }
+  .landing-orbit-left {
+    left: 0;
+    animation: landing-orbit-bob 5s 900ms ease-in-out infinite;
+  }
+  .landing-orbit-right {
+    left: 100%;
+    animation: landing-orbit-bob 5.5s 1.2s ease-in-out infinite;
+  }
+  .landing-orbit-left .landing-orbit-card { transform: translate(0, -50%); }
+  .landing-orbit-right .landing-orbit-card { transform: translate(-100%, -50%); }
+}
+
+/* At Fold widths the two pills meet in the middle, so trim them to keep a gap. */
+@media (max-width: 319px) {
+  .landing-orbit-card {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.56rem;
+    gap: 0.35rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .landing-reveal,
   .landing-product-preview,
@@ -327,13 +361,6 @@
     opacity: 1;
     transform: none;
   }
-}
-
-@media (max-width: 640px) {
-  .landing-3d-stage { min-height: 340px; }
-  .landing-orbit-card { font-size: 0.62rem; }
-  .landing-orbit-left { left: 8%; }
-  .landing-orbit-right { left: 92%; }
 }
 
 .animate-fade-in {
