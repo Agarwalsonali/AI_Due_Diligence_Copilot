@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/auth-context';
 import {
   LayoutDashboard, Building2, FileText, MessageSquare,
   GitCompare, FileBarChart, LogOut, TrendingUp,
-  ChevronLeft, ChevronRight, Settings
+  ChevronLeft, ChevronRight, Settings, X
 } from 'lucide-react';
 import { useState } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -72,6 +72,18 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
         >
           <TrendingUp className="h-4 w-4 text-primary" />
         </Link>
+        {/* The collapse chevron is md+ only, so the mobile drawer needs its own
+            way to close without reaching for the backdrop. */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          aria-label="Close navigation menu"
+          title="Close menu"
+          className="md:hidden shrink-0"
+        >
+          <X className="h-4 w-4" />
+        </Button>
         <Button
           variant="ghost"
           size="icon"
