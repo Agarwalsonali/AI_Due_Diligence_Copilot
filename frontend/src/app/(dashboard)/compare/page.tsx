@@ -184,13 +184,14 @@ export default function ComparePage() {
                 )}
               </div>
             </div>
+            {/* Badges render <div>, which is invalid inside CardDescription's <p>. */}
             {comparedNames.length > 0 && (
-              <CardDescription className="flex flex-wrap items-center gap-2 pt-1">
+              <div className="text-sm text-muted-foreground flex flex-wrap items-center gap-2 pt-1">
                 <span>Comparing:</span>
                 {comparedNames.map((name, i) => (
                   <Badge key={i} variant="outline" className="text-xs">{name}</Badge>
                 ))}
-              </CardDescription>
+              </div>
             )}
           </CardHeader>
           <CardContent className="space-y-6">
