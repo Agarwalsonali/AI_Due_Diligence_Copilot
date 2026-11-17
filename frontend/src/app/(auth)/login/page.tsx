@@ -41,9 +41,15 @@ export default function LoginPage() {
     <Card className="border-border shadow-2xl animate-slide-up w-full max-w-md mx-auto">
       <CardHeader className="space-y-1 text-center pb-8">
         <div className="flex justify-center mb-4">
-          <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center border border-primary/20">
+          {/* The mark doubles as the way back to the public landing page. */}
+          <Link
+            href="/"
+            title="Back to the landing page"
+            aria-label="Back to the landing page"
+            className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center border border-primary/20 transition-colors hover:bg-primary/20"
+          >
             <TrendingUp className="h-6 w-6 text-primary" />
-          </div>
+          </Link>
         </div>
         <CardTitle className="text-2xl font-bold tracking-tight">DD Copilot</CardTitle>
         <CardDescription>

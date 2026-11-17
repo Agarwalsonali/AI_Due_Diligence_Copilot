@@ -53,15 +53,25 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
       >
         {/* Collapsing only shrinks the md+ rail. On mobile the drawer always shows
             the full logo, labels and logout — its collapse toggle is hidden there. */}
-        <div className={cn('flex items-center gap-2 overflow-hidden whitespace-nowrap', collapsed && 'md:hidden')}>
+        {/* The logo always leads back to the public landing page. */}
+        <Link
+          href="/"
+          title="Back to the landing page"
+          className={cn('flex items-center gap-2 overflow-hidden whitespace-nowrap', collapsed && 'md:hidden')}
+        >
           <div className="p-1.5 bg-primary/10 rounded-lg border border-primary/20">
             <TrendingUp className="h-5 w-5 text-primary" />
           </div>
           <span className="font-semibold text-lg tracking-tight">DD Copilot</span>
-        </div>
-        <div className={cn('p-1 bg-primary/10 rounded-lg border border-primary/20', collapsed ? 'hidden md:block' : 'hidden')}>
+        </Link>
+        <Link
+          href="/"
+          title="Back to the landing page"
+          aria-label="Back to the landing page"
+          className={cn('p-1 bg-primary/10 rounded-lg border border-primary/20', collapsed ? 'hidden md:block' : 'hidden')}
+        >
           <TrendingUp className="h-4 w-4 text-primary" />
-        </div>
+        </Link>
         <Button
           variant="ghost"
           size="icon"
