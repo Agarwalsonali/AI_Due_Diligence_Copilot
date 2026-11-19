@@ -127,6 +127,7 @@ export default function ComparePage() {
                 return (
                   <button
                     key={company.id}
+                    data-cy="compare-option"
                     onClick={() => toggleCompany(company.id)}
                     className={`p-4 rounded-lg border text-left transition-all ${
                       selected

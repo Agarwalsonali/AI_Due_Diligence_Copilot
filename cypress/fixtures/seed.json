@@ -1,0 +1,329 @@
+{
+  "_comment": "Mirrors the data created by backend/seed_data.py, in the backend's snake_case wire format. The password belongs to the local development seed account (backend/seed_data.py); override with CYPRESS_testEmail / CYPRESS_testPassword env vars if you use a different account.",
+  "user": {
+    "id": 1,
+    "name": "Test User",
+    "email": "test@freebuff.com",
+    "created_at": "2025-01-15T10:00:00Z"
+  },
+  "password": "testpassword123",
+  "companies": [
+    {
+      "id": 1,
+      "name": "Acme Corp",
+      "ticker": "ACME",
+      "industry": "Technology",
+      "sector": "Software",
+      "description": "Enterprise SaaS company providing cloud-based project management tools.",
+      "website": "https://acme.example.com",
+      "created_by": 1,
+      "created_at": "2025-02-10T09:15:00Z",
+      "document_count": 2
+    },
+    {
+      "id": 2,
+      "name": "Global Pharma Inc",
+      "ticker": "GPHR",
+      "industry": "Healthcare",
+      "sector": "Pharmaceuticals",
+      "description": "Large-cap pharmaceutical company with a diversified drug pipeline.",
+      "website": "https://globalpharma.example.com",
+      "created_by": 1,
+      "created_at": "2025-02-12T11:30:00Z",
+      "document_count": 1
+    },
+    {
+      "id": 3,
+      "name": "GreenEnergy Ltd",
+      "ticker": "GRNE",
+      "industry": "Energy",
+      "sector": "Renewable Energy",
+      "description": "Solar and wind energy company expanding into battery storage.",
+      "website": "https://greenenergy.example.com",
+      "created_by": 1,
+      "created_at": "2025-02-20T08:00:00Z",
+      "document_count": 1
+    },
+    {
+      "id": 4,
+      "name": "Nova Retail",
+      "ticker": "NRT",
+      "industry": "Consumer",
+      "sector": "Retail",
+      "description": "Mid-cap omnichannel retailer.",
+      "website": "https://novaretail.example.com",
+      "created_by": 1,
+      "created_at": "2025-03-02T14:45:00Z",
+      "document_count": 0
+    },
+    {
+      "id": 5,
+      "name": "Helios Materials",
+      "ticker": "HMAT",
+      "industry": "Materials",
+      "sector": "Chemicals",
+      "description": "Specialty chemicals manufacturer.",
+      "website": "https://helios.example.com",
+      "created_by": 1,
+      "created_at": "2025-03-05T16:20:00Z",
+      "document_count": 0
+    }
+  ],
+  "documents": [
+    {
+      "id": 1,
+      "company_id": 1,
+      "user_id": 1,
+      "title": "FY2025 Annual Report",
+      "file_name": "acme_fy2025_annual_report.pdf",
+      "file_path": "data/uploads/1/acme_fy2025_annual_report.pdf",
+      "document_type": "Annual Report",
+      "filing_date": "2025-03-15T00:00:00Z",
+      "page_count": 64,
+      "processing_status": "completed",
+      "error_message": null,
+      "created_at": "2025-03-16T09:00:00Z"
+    },
+    {
+      "id": 2,
+      "company_id": 1,
+      "user_id": 1,
+      "title": "Q1 2025 Earnings Call Transcript",
+      "file_name": "acme_q1_2025_earnings.pdf",
+      "file_path": "data/uploads/1/acme_q1_2025_earnings.pdf",
+      "document_type": "Earnings",
+      "filing_date": "2025-05-02T00:00:00Z",
+      "page_count": 28,
+      "processing_status": "completed",
+      "error_message": null,
+      "created_at": "2025-05-03T10:15:00Z"
+    },
+    {
+      "id": 3,
+      "company_id": 2,
+      "user_id": 1,
+      "title": "Global Pharma FY2025 10-K",
+      "file_name": "gphr_10k_2025.pdf",
+      "file_path": "data/uploads/2/gphr_10k_2025.pdf",
+      "document_type": "10-K",
+      "filing_date": "2025-02-28T00:00:00Z",
+      "page_count": 120,
+      "processing_status": "completed",
+      "error_message": null,
+      "created_at": "2025-03-01T08:40:00Z"
+    },
+    {
+      "id": 4,
+      "company_id": 3,
+      "user_id": 1,
+      "title": "GreenEnergy FY2025 Annual Report",
+      "file_name": "grne_fy2025_annual_report.pdf",
+      "file_path": "data/uploads/3/grne_fy2025_annual_report.pdf",
+      "document_type": "Annual Report",
+      "filing_date": "2025-04-10T00:00:00Z",
+      "page_count": 48,
+      "processing_status": "processing",
+      "error_message": null,
+      "created_at": "2025-04-11T12:00:00Z"
+    }
+  ],
+  "analyses": {
+    "1": {
+      "financials": {
+        "company_id": 1,
+        "status": "completed",
+        "metrics": [
+          {
+            "id": 1,
+            "company_id": 1,
+            "document_id": null,
+            "metric_name": "revenue",
+            "metric_value": 2400,
+            "currency": "USD",
+            "unit": "millions",
+            "fiscal_year": 2025,
+            "status": "extracted",
+            "source_page": 5,
+            "source_section": "Revenue Overview",
+            "source_excerpt": "Total revenue of $2.4 billion for fiscal year 2025.",
+            "source": "acme_fy2025_annual_report.pdf",
+            "created_at": "2025-03-16T09:05:00Z"
+          },
+          {
+            "id": 2,
+            "company_id": 1,
+            "document_id": null,
+            "metric_name": "revenue",
+            "metric_value": 2030,
+            "currency": "USD",
+            "unit": "millions",
+            "fiscal_year": 2024,
+            "status": "extracted",
+            "source_page": 5,
+            "source_section": "Revenue Overview",
+            "source_excerpt": "$2.03 billion in FY2024.",
+            "source": "acme_fy2025_annual_report.pdf",
+            "created_at": "2025-03-16T09:05:00Z"
+          },
+          {
+            "id": 3,
+            "company_id": 1,
+            "document_id": null,
+            "metric_name": "net_income",
+            "metric_value": 384,
+            "currency": "USD",
+            "unit": "millions",
+            "fiscal_year": 2025,
+            "status": "extracted",
+            "source_page": 12,
+            "source_section": "Profitability",
+            "source_excerpt": "Net income for FY2025 was $384 million.",
+            "source": "acme_fy2025_annual_report.pdf",
+            "created_at": "2025-03-16T09:05:00Z"
+          },
+          {
+            "id": 4,
+            "company_id": 1,
+            "document_id": null,
+            "metric_name": "free_cash_flow",
+            "metric_value": 512,
+            "currency": "USD",
+            "unit": "millions",
+            "fiscal_year": 2025,
+            "status": "extracted",
+            "source_page": 12,
+            "source_section": "Profitability",
+            "source_excerpt": "Free cash flow generation was strong at $512 million.",
+            "source": "acme_fy2025_annual_report.pdf",
+            "created_at": "2025-03-16T09:05:00Z"
+          },
+          {
+            "id": 5,
+            "company_id": 1,
+            "document_id": null,
+            "metric_name": "cash",
+            "metric_value": 1800,
+            "currency": "USD",
+            "unit": "millions",
+            "fiscal_year": 2025,
+            "status": "extracted",
+            "source_page": 18,
+            "source_section": "Balance Sheet",
+            "source_excerpt": "$1.8 billion in cash and short-term investments.",
+            "source": "acme_fy2025_annual_report.pdf",
+            "created_at": "2025-03-16T09:05:00Z"
+          },
+          {
+            "id": 6,
+            "company_id": 1,
+            "document_id": null,
+            "metric_name": "debt",
+            "metric_value": 600,
+            "currency": "USD",
+            "unit": "millions",
+            "fiscal_year": 2025,
+            "status": "extracted",
+            "source_page": 18,
+            "source_section": "Balance Sheet",
+            "source_excerpt": "$600 million in long-term debt.",
+            "source": "acme_fy2025_annual_report.pdf",
+            "created_at": "2025-03-16T09:05:00Z"
+          }
+        ],
+        "ratios": [
+          {
+            "name": "revenue_growth",
+            "value": 0.18,
+            "fiscal_year": 2025,
+            "formula": "(revenue_current - revenue_prior) / revenue_prior"
+          },
+          {
+            "name": "net_margin",
+            "value": 0.16,
+            "fiscal_year": 2025,
+            "formula": "net_income / revenue"
+          },
+          {
+            "name": "debt_to_equity",
+            "value": 0.33,
+            "fiscal_year": 2025,
+            "formula": "total_debt / shareholders_equity"
+          }
+        ],
+        "insights": [
+          "Revenue grew 18.2% year-over-year in FY2025.",
+          "Net profit margin: 16.0%."
+        ]
+      },
+      "financial_health": {
+        "company_id": 1,
+        "overall": "Strong",
+        "growth": "Strong — 18% YoY revenue growth with expanding enterprise segment.",
+        "profitability": "Improving — operating margin expanded to 21.5%, net margin at 16%.",
+        "liquidity": "Strong — current ratio of 2.1x with $1.8B cash on hand.",
+        "leverage": "Conservative — debt-to-equity of 0.33x.",
+        "cash_flow": "Excellent — $512M free cash flow.",
+        "explanation": "Acme Corp demonstrates strong financial health across all key dimensions.",
+        "scores": {
+          "growth": 8.5,
+          "profitability": 7.8,
+          "liquidity": 8.2,
+          "leverage": 8.0,
+          "cash_flow": 8.5
+        },
+        "sources": []
+      },
+      "risks": {
+        "company_id": 1,
+        "risks": [
+          {
+            "category": "Competition",
+            "title": "Increasing Competitive Pressure",
+            "severity": "MEDIUM",
+            "description": "New entrants in the cloud collaboration space are gaining market share with aggressive pricing strategies.",
+            "evidence": "Market share data shows three new competitors each capturing 2-3% share in the SMB segment.",
+            "sources": []
+          },
+          {
+            "category": "Regulatory",
+            "title": "GDPR Compliance Cost Escalation",
+            "severity": "HIGH",
+            "description": "European data privacy regulations are driving up compliance costs.",
+            "evidence": "Compliance costs rose from $18M to $20.7M in FY2025.",
+            "sources": []
+          }
+        ]
+      },
+      "opportunities": {
+        "company_id": 1,
+        "opportunities": [
+          {
+            "category": "AI/ML",
+            "title": "AI-Powered Product Features",
+            "description": "Integration of AI tools into the platform could drive 25% uplift in enterprise deal sizes.",
+            "evidence": "Management guided for AI-driven features to contribute to enterprise revenue growth in FY2026.",
+            "confidence": "High",
+            "sources": []
+          }
+        ]
+      },
+      "summary": {
+        "company_id": 1,
+        "executive_summary": "Acme Corp is a rapidly growing enterprise SaaS company with strong financial fundamentals.",
+        "key_findings": [
+          "Revenue grew 18% YoY to $2.4B with accelerating enterprise segment growth.",
+          "Operating margin expanded to 21.5%, demonstrating strong operating leverage."
+        ]
+      }
+    }
+  },
+  "reports": [
+    {
+      "id": 1,
+      "title": "Due Diligence Report - Acme Corp",
+      "status": "completed",
+      "file_path": null,
+      "created_at": "2025-06-01T12:00:00Z"
+    }
+  ]
+}

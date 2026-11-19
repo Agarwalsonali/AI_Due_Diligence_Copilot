@@ -150,7 +150,7 @@ export function DocumentList({ companyId, limit, hideActions, refreshToken }: Do
         </TableHeader>
         <TableBody>
           {docs.map(doc => (
-            <TableRow key={doc.id}>
+            <TableRow key={doc.id} data-cy="document-row">
               {/* max-w-0 lets this column absorb the leftover width so long titles
                   truncate instead of pushing the row (and its actions) off-screen. */}
               <TableCell className="font-medium max-sm:w-full max-w-0 sm:max-w-none">

@@ -14,3 +14,10 @@ data/uploads/*
 .idea
 .vscode
 .freebuff
+
+# Cypress
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+
+.env.*

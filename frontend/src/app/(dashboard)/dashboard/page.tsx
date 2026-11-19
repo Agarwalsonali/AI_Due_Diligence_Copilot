@@ -69,7 +69,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             {loading ? <Skeleton className="h-8 w-16" /> : (
-              <div className="text-2xl font-bold">{companies.length}</div>
+              <div className="text-2xl font-bold" data-cy="stat-companies">{companies.length}</div>
             )}
           </CardContent>
         </Card>
@@ -80,7 +80,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             {loading ? <Skeleton className="h-8 w-16" /> : (
-              <div className="text-2xl font-bold">{documents.length}</div>
+              <div className="text-2xl font-bold" data-cy="stat-documents">{documents.length}</div>
             )}
           </CardContent>
         </Card>
@@ -91,7 +91,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             {loading ? <Skeleton className="h-8 w-16" /> : (
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold" data-cy="stat-processed">
                 {documents.filter(d => d.processingStatus === 'completed').length}
               </div>
             )}

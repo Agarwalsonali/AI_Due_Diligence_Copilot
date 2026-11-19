@@ -14,7 +14,7 @@ interface CompanyCardProps {
 
 export function CompanyCard({ company }: CompanyCardProps) {
   return (
-    <Link href={`/companies/${company.id}`}>
+    <Link href={`/companies/${company.id}`} data-cy="company-card">
       <Card className="h-full hover:shadow-md hover:border-primary/30 transition-all cursor-pointer group">
         <CardHeader className="pb-3">
           <div className="flex justify-between items-start mb-2">
