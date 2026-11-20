@@ -46,10 +46,18 @@ describe("Companies list", () => {
 
 describe("Companies list — errors", () => {
   it("reports a failed company fetch", () => {
-    cy.mockApi({
-      failures: [{ route: "GET /companies", statusCode: 500 }],
-    });
+    cy.mockApi();
     cy.login();
+    // The dashboard also requests GET /companies, so a failure injected up
+    // front would be consumed before the page under test ever loads.
+    cy.get("@backend").then((backend) => {
+      backend.addFailure({
+        route: "GET /companies",
+        statusCode: 500,
+        // The dashboard may still have a request in flight.
+        times: 3,
+      });
+    });
     cy.visitApp("/companies");
 
     cy.contains("Failed to fetch companies");

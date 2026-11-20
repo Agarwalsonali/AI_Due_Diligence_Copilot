@@ -447,5 +447,10 @@ export function createBackend(options = {}) {
     state,
     token: state.token,
     handle,
+    /** Arm a one-shot failure after the page has already loaded (e.g. once a
+     *  sign-in has consumed another route's injected failure). */
+    addFailure(failure) {
+      failures.push({ times: 1, ...failure });
+    },
   };
 }

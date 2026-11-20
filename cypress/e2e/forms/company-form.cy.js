@@ -36,7 +36,7 @@ describe("Add company form", () => {
 
     cy.get('[data-cy="company-card"]')
       .contains("Umbrella Financial")
-      .parent()
+      .closest('[data-cy="company-card"]')
       .should("contain", "Finance");
   });
 
