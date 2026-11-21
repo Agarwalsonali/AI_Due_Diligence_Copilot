@@ -11,6 +11,8 @@ import { toast } from 'sonner';
 import { notify } from '@/lib/notify';
 import { FileBarChart, FileText, Plus, Clock, CheckCircle2, AlertCircle, Loader2, Download } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
+import { PageHeader } from '@/components/layout/page-header';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ReportsPage() {
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -73,7 +75,7 @@ export default function ReportsPage() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed': return <CheckCircle2 className="h-4 w-4 text-emerald-500" />;
+      case 'completed': return <CheckCircle2 className="h-4 w-4 text-success" />;
       case 'generating': return <Loader2 className="h-4 w-4 text-primary animate-spin" />;
       case 'failed': return <AlertCircle className="h-4 w-4 text-destructive" />;
       default: return <Clock className="h-4 w-4 text-muted-foreground" />;
@@ -82,10 +84,10 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Reports</h1>
-        <p className="text-muted-foreground mt-1">Generate and manage due diligence reports</p>
-      </div>
+      <PageHeader
+        title="Reports"
+        description="Generate and manage due diligence reports"
+      />
 
       <Card>
         <CardHeader>
@@ -126,11 +128,11 @@ export default function ReportsPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            <div className="space-y-3" aria-busy="true" aria-label="Loading reports">
+              {[1, 2, 3].map(i => <Skeleton key={i} className="h-[72px] w-full rounded-lg" />)}
             </div>
           ) : reports.length === 0 ? (
-            <div className="text-center py-12 border border-dashed rounded-xl">
+            <div className="rounded-lg border border-dashed py-12 text-center">
               <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
               <p className="text-muted-foreground">No reports generated yet</p>
               <p className="text-sm text-muted-foreground/70 mt-1">Select a company above to generate your first report</p>
@@ -150,7 +152,7 @@ export default function ReportsPage() {
                   </div>
                   <div className="flex items-center gap-2 shrink-0 ml-auto">
                     <Badge variant="outline" className={`text-xs ${
-                      report.status === 'completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' :
+                      report.status === 'completed' ? 'bg-success/10 text-success border-success/20' :
                       report.status === 'generating' ? 'bg-primary/10 text-primary border-primary/20' :
                       'bg-destructive/10 text-destructive border-destructive/20'
                     }`}>

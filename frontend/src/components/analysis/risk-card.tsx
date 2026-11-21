@@ -13,19 +13,19 @@ export function RiskCard({ risk }: { risk: RiskItem }) {
 
   const severityConfig: Record<string, { color: string; border: string; bg: string }> = {
     CRITICAL: { color: 'text-destructive', border: 'border-l-destructive', bg: 'bg-destructive/5' },
-    HIGH: { color: 'text-orange-500', border: 'border-l-orange-500', bg: 'bg-orange-500/5' },
-    MEDIUM: { color: 'text-yellow-500', border: 'border-l-yellow-500', bg: 'bg-yellow-500/5' },
-    LOW: { color: 'text-emerald-500', border: 'border-l-emerald-500', bg: 'bg-emerald-500/5' },
+    HIGH: { color: 'text-warning', border: 'border-l-warning', bg: 'bg-warning/5' },
+    MEDIUM: { color: 'text-info', border: 'border-l-info', bg: 'bg-info/5' },
+    LOW: { color: 'text-success', border: 'border-l-success', bg: 'bg-success/5' },
   };
 
   const severity = severityConfig[risk.severity] || severityConfig.MEDIUM;
 
   return (
-    <Card className={cn('overflow-hidden border-l-4 transition-all hover:shadow-md', severity.border, severity.bg)}>
+    <Card className={cn('overflow-hidden border-l-4 transition-[transform,border-color] duration-200 ease-standard hover:-translate-y-0.5', severity.border, severity.bg)}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between mb-2">
           <Badge variant="outline" className="text-xs">{risk.category}</Badge>
-          <span className={cn('text-xs font-bold tracking-wider', severity.color)}>{risk.severity}</span>
+          <span className={cn('text-xs font-semibold tracking-wider', severity.color)}>{risk.severity}</span>
         </div>
         <CardTitle className="text-base font-semibold flex items-start gap-2">
           <ShieldAlert className="w-4 h-4 mt-0.5 opacity-70 shrink-0" />
@@ -54,7 +54,7 @@ export function RiskCard({ risk }: { risk: RiskItem }) {
                 <span className="font-semibold text-xs">Sources:</span>
                 <div className="flex flex-wrap gap-1.5 mt-1">
                   {risk.sources.map((src: SourceCitation, idx: number) => (
-                    <Badge key={idx} variant="secondary" className="text-[10px]">
+                    <Badge key={idx} variant="secondary" className="text-xs">
                       {src.documentTitle || `Doc ${src.documentId}`} p.{src.pageNumber}
                     </Badge>
                   ))}

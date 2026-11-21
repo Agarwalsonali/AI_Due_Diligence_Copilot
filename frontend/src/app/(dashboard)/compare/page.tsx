@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { notify } from '@/lib/notify';
 import ReactMarkdown from 'react-markdown';
 import { GitCompare, Loader2, BarChart3, X, Download, FileBarChart, FileText } from 'lucide-react';
+import { PageHeader } from '@/components/layout/page-header';
 
 export default function ComparePage() {
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -101,10 +102,10 @@ export default function ComparePage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Company Comparison</h1>
-        <p className="text-muted-foreground mt-1">Select 2-4 companies to compare side by side</p>
-      </div>
+      <PageHeader
+        title="Company Comparison"
+        description="Select two to four companies to compare side by side"
+      />
 
       <Card>
         <CardHeader>
@@ -129,10 +130,10 @@ export default function ComparePage() {
                     key={company.id}
                     data-cy="compare-option"
                     onClick={() => toggleCompany(company.id)}
-                    className={`p-4 rounded-lg border text-left transition-all ${
+                    className={`rounded-lg border p-4 text-left transition-[background-color,border-color] duration-200 ease-standard ${
                       selected
-                        ? 'border-primary bg-primary/5 shadow-sm'
-                        : 'hover:border-border hover:bg-muted/50'
+                        ? 'border-primary bg-primary/5'
+                        : 'hover:border-primary/40 hover:bg-muted/50'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-2">
@@ -140,7 +141,7 @@ export default function ComparePage() {
                       {selected && <X className="h-4 w-4 text-primary shrink-0" />}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {company.ticker && <Badge variant="outline" className="mr-2 text-[10px]">{company.ticker}</Badge>}
+                      {company.ticker && <Badge variant="outline" className="mr-2 text-xs">{company.ticker}</Badge>}
                       {company.industry}
                     </div>
                   </button>
@@ -197,7 +198,7 @@ export default function ComparePage() {
           </CardHeader>
           <CardContent className="space-y-6">
             {report && (
-              <div className="rounded-lg border bg-emerald-500/5 border-emerald-500/20 px-4 py-3 text-sm text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+              <div className="flex items-center gap-2 rounded-lg border border-success/20 bg-success/5 px-4 py-3 text-sm text-success">
                 <FileBarChart className="h-4 w-4 shrink-0" />
                 <span className="flex-1 truncate">{report.title}</span>
                 <span className="text-xs text-muted-foreground hidden sm:inline">ready to download</span>

@@ -6,7 +6,7 @@ import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
-  title: 'DD Copilot — AI Due Diligence',
+  title: 'DD Copilot | AI Due Diligence',
   description: 'AI-powered financial due diligence and research platform',
   icons: { icon: '/favicon.svg' },
 };

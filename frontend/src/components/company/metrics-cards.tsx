@@ -102,11 +102,11 @@ export function MetricsCards({ metrics = [], ratios = [], loading }: MetricsCard
             {card.trend != null && typeof card.trend === 'number' && (
               <div className="flex items-center mt-1 text-xs">
                 {(card.trend > 0) === !card.invert ? (
-                  <TrendingUp className="w-3 h-3 mr-1 text-emerald-500" />
+                  <TrendingUp className="h-3 w-3 mr-1 text-success" />
                 ) : (
-                  <TrendingDown className="w-3 h-3 mr-1 text-red-500" />
+                  <TrendingDown className="h-3 w-3 mr-1 text-destructive" />
                 )}
-                <span className={card.trend > 0 ? (card.invert ? 'text-red-500' : 'text-emerald-500') : (card.invert ? 'text-emerald-500' : 'text-red-500')}>
+                <span className={card.trend > 0 ? (card.invert ? 'text-destructive' : 'text-success') : (card.invert ? 'text-success' : 'text-destructive')}>
                   {Math.abs(card.trend * 100).toFixed(1)}% {card.trendLabel || 'change'}
                 </span>
               </div>

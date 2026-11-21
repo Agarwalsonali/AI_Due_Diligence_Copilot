@@ -38,7 +38,7 @@ export function MetricsTable({ metrics }: MetricsTableProps) {
 
   const getSourceBadgeClass = (status: string) => {
     switch (status) {
-      case 'extracted': return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20';
+      case 'extracted': return 'bg-success/10 text-success border-success/20';
       case 'calculated': return 'bg-primary/10 text-primary border-primary/20';
       case 'not_found': return 'bg-muted text-muted-foreground border-border';
       default: return '';
@@ -54,7 +54,7 @@ export function MetricsTable({ metrics }: MetricsTableProps) {
   };
 
   return (
-    <div className="rounded-md border overflow-hidden">
+    <div className="overflow-hidden rounded-lg border">
       <Table>
         <TableHeader>
           <TableRow>
@@ -89,7 +89,7 @@ export function MetricsTable({ metrics }: MetricsTableProps) {
                 <TableCell className="font-medium capitalize px-4 py-3">
                   {metric.metricName.replace(/_/g, ' ')}
                 </TableCell>
-                <TableCell className="text-muted-foreground px-4 py-3">{metric.fiscalYear || '—'}</TableCell>
+                <TableCell className="text-muted-foreground px-4 py-3">{metric.fiscalYear || 'N/A'}</TableCell>
                 <TableCell className="text-right font-mono px-4 py-3">
                   {formatValue(metric.metricValue, metric.metricName)}
                 </TableCell>

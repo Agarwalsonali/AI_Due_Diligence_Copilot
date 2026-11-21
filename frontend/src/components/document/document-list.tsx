@@ -9,6 +9,7 @@ import { documentAPI } from '@/lib/api';
 import { Document } from '@/types';
 import { formatDate } from '@/lib/utils';
 import { notify } from '@/lib/notify';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
 
 interface DocumentListProps {
@@ -88,7 +89,7 @@ export function DocumentList({ companyId, limit, hideActions, refreshToken }: Do
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">Completed</Badge>;
+        return <Badge className="border-success/20 bg-success/10 text-success">Completed</Badge>;
       case 'processing':
         // inline-flex, not flex: a block-level badge stretched across the whole
         // cell instead of hugging its label like the other statuses.
@@ -110,8 +111,18 @@ export function DocumentList({ companyId, limit, hideActions, refreshToken }: Do
 
   if (loading) {
     return (
-      <div className="p-8 text-center">
-        <Loader2 className="w-6 h-6 animate-spin mx-auto text-primary" />
+      <div
+        className="divide-y divide-border overflow-hidden rounded-lg border"
+        aria-busy="true"
+        aria-label="Loading documents"
+      >
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="flex items-center gap-3 p-4">
+            <Skeleton className="h-4 w-4 rounded-sm" />
+            <Skeleton className="h-4 w-full max-w-[280px]" />
+            <Skeleton className="ml-auto h-5 w-20 rounded-full" />
+          </div>
+        ))}
       </div>
     );
   }
@@ -127,7 +138,7 @@ export function DocumentList({ companyId, limit, hideActions, refreshToken }: Do
   // Tighter cell padding on small screens keeps Document, Status and Actions
   // on-screen together instead of forcing a sideways scroll to reach a row.
   return (
-    <div className="rounded-md border overflow-x-auto max-sm:[&_th]:px-1.5 max-sm:[&_td]:px-1.5 max-sm:[&_th:last-child]:pr-0 max-sm:[&_td:last-child]:pr-0">
+    <div className="overflow-x-auto rounded-lg border max-sm:[&_th]:px-1.5 max-sm:[&_td]:px-1.5 max-sm:[&_th:last-child]:pr-0 max-sm:[&_td:last-child]:pr-0">
       <Table>
         <TableHeader>
           <TableRow>
@@ -169,11 +180,11 @@ export function DocumentList({ companyId, limit, hideActions, refreshToken }: Do
               </TableCell>
               <TableCell className="text-muted-foreground text-sm hidden sm:table-cell md:hidden lg:table-cell">{doc.documentType || 'Other'}</TableCell>
               <TableCell className="w-0 hidden sm:table-cell">{getStatusBadge(doc.processingStatus)}</TableCell>
-              <TableCell className="text-muted-foreground text-sm hidden lg:table-cell">{doc.pageCount || '—'}</TableCell>
+              <TableCell className="text-muted-foreground text-sm hidden lg:table-cell">{doc.pageCount || 'N/A'}</TableCell>
               {/* nowrap keeps the date on one line: wrapped into the squeezed
                   column it made every row three lines tall. */}
               <TableCell className="text-muted-foreground text-sm hidden lg:table-cell whitespace-nowrap">
-                {doc.createdAt ? formatDate(doc.createdAt) : '—'}
+                {doc.createdAt ? formatDate(doc.createdAt) : 'N/A'}
               </TableCell>
               {!hideActions && (
                 <TableCell className="text-right">

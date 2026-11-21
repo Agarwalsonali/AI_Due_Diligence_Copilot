@@ -37,7 +37,7 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   return (
     <div
       className={cn(
-        'flex flex-col h-full border-r border-border bg-card transition-all duration-300',
+        'flex flex-col h-full border-r border-border bg-card transition-[width,transform] duration-200 ease-standard',
         // Mobile: off-canvas drawer, hidden until opened from the header menu.
         'fixed inset-y-0 left-0 z-50 w-64 -translate-x-full md:static md:translate-x-0',
         mobileOpen && 'translate-x-0 shadow-2xl',
@@ -103,7 +103,7 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm',
+                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors duration-150',
                 active
                   ? 'bg-primary/10 text-primary font-medium'
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground'

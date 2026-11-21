@@ -2,14 +2,15 @@
 
 import { ChatInterface } from '@/components/chat/chat-interface';
 import { Card, CardContent } from '@/components/ui/card';
+import { PageHeader } from '@/components/layout/page-header';
 
 export default function ChatPage() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">AI Research Chat</h1>
-        <p className="text-muted-foreground mt-1">Ask questions grounded in your uploaded documents</p>
-      </div>
+      <PageHeader
+        title="AI Research Chat"
+        description="Ask questions grounded in your uploaded documents"
+      />
 
       <Card className="overflow-hidden">
         <CardContent className="p-0">

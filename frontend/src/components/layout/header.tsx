@@ -10,7 +10,7 @@ const pageTitles: Record<string, string> = {
   dashboard: 'Dashboard',
   companies: 'Companies',
   documents: 'Documents',
-  chat: 'AI Research',
+  chat: 'AI Research Chat',
   compare: 'Company Comparison',
   reports: 'Reports',
   settings: 'Settings',

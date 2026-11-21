@@ -172,7 +172,7 @@ export default function CompanyDetailPage() {
           </Link>
           <div>
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-2xl font-bold break-words">{company.name}</h1>
+              <h1 className="text-2xl font-semibold tracking-tight break-words">{company.name}</h1>
               {company.ticker && (
                 <Badge variant="outline" className="font-mono">{company.ticker}</Badge>
               )}
@@ -303,7 +303,7 @@ export default function CompanyDetailPage() {
                       <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
                         <Badge variant="outline" className={`text-xs shrink-0 ${
                           risk.severity === 'CRITICAL' ? 'border-destructive text-destructive' :
-                          risk.severity === 'HIGH' ? 'border-orange-500 text-orange-500' :
+                          risk.severity === 'HIGH' ? 'border-warning text-warning' :
                           'border-muted-foreground text-muted-foreground'
                         }`}>{risk.severity}</Badge>
                         <div className="min-w-0">
@@ -337,7 +337,7 @@ export default function CompanyDetailPage() {
                   <div className="space-y-3">
                     {opportunities.slice(0, 3).map((opp: any, i: number) => (
                       <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-                        <Badge variant="outline" className="text-xs shrink-0 border-emerald-500/50 text-emerald-600 dark:text-emerald-400">{opp.category}</Badge>
+                        <Badge variant="outline" className="shrink-0 border-success/40 text-xs text-success">{opp.category}</Badge>
                         <div className="min-w-0">
                           <p className="text-sm font-medium truncate">{opp.title}</p>
                           <p className="text-xs text-muted-foreground truncate">{opp.description?.substring(0, 80)}...</p>
@@ -504,7 +504,7 @@ export default function CompanyDetailPage() {
 
         {/* ── Chat ─────────────────────────────────────────────────────────── */}
         <TabsContent value="chat">
-          <div className="h-[500px] sm:h-[600px] rounded-xl border overflow-hidden">
+          <div className="h-[500px] overflow-hidden rounded-lg border sm:h-[600px]">
             <ChatInterface companyId={id} />
           </div>
         </TabsContent>

@@ -102,7 +102,7 @@ export function ChatInterface({ companyId }: ChatInterfaceProps) {
           <div className="flex flex-col items-center h-full text-center">
             <div className="my-auto w-full flex flex-col items-center">
               <div className="mb-8">
-                <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-lg border border-border bg-muted">
                   <Send className="h-7 w-7 text-primary" />
                 </div>
                 <h3 className="text-lg font-medium mb-2">Ask anything about this company</h3>
@@ -146,8 +146,9 @@ export function ChatInterface({ companyId }: ChatInterfaceProps) {
             disabled={!input.trim() || loading}
             size="icon"
             className="shrink-0"
+            aria-label={loading ? 'Sending question' : 'Send question'}
           >
-            <Send className="h-4 w-4" />
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </Button>
         </div>
       </div>

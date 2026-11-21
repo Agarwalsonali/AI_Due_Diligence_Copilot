@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, Lock, AlertCircle, TrendingUp, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, AlertCircle, TrendingUp, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
 import { notify } from '@/lib/notify';
@@ -38,8 +38,8 @@ export default function LoginPage() {
   };
 
   return (
-    <Card className="border-border shadow-2xl animate-slide-up w-full max-w-md mx-auto">
-      <CardHeader className="space-y-1 text-center pb-8">
+    <Card className="border-border shadow-card animate-slide-up w-full max-w-md mx-auto">
+      <CardHeader className="space-y-1 text-center pb-6">
         <div className="flex justify-center mb-4">
           {/* The mark doubles as the way back to the public landing page. */}
           <Link
@@ -51,7 +51,7 @@ export default function LoginPage() {
             <TrendingUp className="h-6 w-6 text-primary" />
           </Link>
         </div>
-        <CardTitle className="text-2xl font-bold tracking-tight">DD Copilot</CardTitle>
+        <CardTitle className="text-2xl font-semibold tracking-tight">DD Copilot</CardTitle>
         <CardDescription>
           Sign in to your due diligence workspace
         </CardDescription>
@@ -106,6 +106,7 @@ export default function LoginPage() {
         </CardContent>
         <CardFooter className="flex flex-col space-y-4 pt-4">
           <Button type="submit" className="w-full" disabled={loading}>
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {loading ? 'Signing in...' : 'Sign In'}
           </Button>
           <div className="text-center text-sm text-muted-foreground">

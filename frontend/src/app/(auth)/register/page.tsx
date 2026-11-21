@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, Lock, User, AlertCircle, TrendingUp, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, AlertCircle, TrendingUp, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
 import { notify } from '@/lib/notify';
@@ -45,8 +45,8 @@ export default function RegisterPage() {
   };
 
   return (
-    <Card className="border-border shadow-2xl animate-slide-up w-full max-w-md mx-auto">
-      <CardHeader className="space-y-1 text-center pb-8">
+    <Card className="border-border shadow-card animate-slide-up w-full max-w-md mx-auto">
+      <CardHeader className="space-y-1 text-center pb-6">
         <div className="flex justify-center mb-4">
           {/* The mark doubles as the way back to the public landing page. */}
           <Link
@@ -58,7 +58,7 @@ export default function RegisterPage() {
             <TrendingUp className="h-6 w-6 text-primary" />
           </Link>
         </div>
-        <CardTitle className="text-2xl font-bold tracking-tight">Create an account</CardTitle>
+        <CardTitle className="text-2xl font-semibold tracking-tight">Create an account</CardTitle>
         <CardDescription>
           Enter your details to create your workspace
         </CardDescription>
@@ -72,7 +72,7 @@ export default function RegisterPage() {
             </Alert>
           )}
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="name">Full name</Label>
             <div className="relative">
               <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input id="name" placeholder="John Doe" className="pl-10" value={name}
@@ -105,7 +105,7 @@ export default function RegisterPage() {
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Label htmlFor="confirmPassword">Confirm password</Label>
             <div className="relative">
               <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input id="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} placeholder="Re-enter your password" className="pl-10 pr-10" value={confirmPassword}
@@ -124,6 +124,7 @@ export default function RegisterPage() {
         </CardContent>
         <CardFooter className="flex flex-col space-y-4 pt-4">
           <Button type="submit" className="w-full" disabled={loading}>
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {loading ? 'Creating account...' : 'Create account'}
           </Button>
           <div className="text-center text-sm text-muted-foreground">

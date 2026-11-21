@@ -41,11 +41,55 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Semantic state colours. Declared with <alpha-value> so `bg-success/10`
+        // and friends actually apply opacity instead of silently dropping it.
+        success: {
+          DEFAULT: "hsl(var(--success) / <alpha-value>)",
+          foreground: "hsl(var(--success-foreground) / <alpha-value>)",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning) / <alpha-value>)",
+          foreground: "hsl(var(--warning-foreground) / <alpha-value>)",
+        },
+        info: {
+          DEFAULT: "hsl(var(--info) / <alpha-value>)",
+          foreground: "hsl(var(--info-foreground) / <alpha-value>)",
+        },
       },
+      // Three radii plus pills. `xl`/`2xl` are aliased to `lg` so a stray
+      // legacy class can never reintroduce a fourth corner value.
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        sm: "6px",
+        DEFAULT: "8px",
+        md: "8px",
+        lg: "12px",
+        xl: "12px",
+        "2xl": "12px",
+        full: "9999px",
+      },
+      // One scale for the whole app: headings step by 1.25x, body sits at 15px
+      // with a generous line height so paragraph rhythm stays uniform.
+      fontSize: {
+        xs: ["0.75rem", { lineHeight: "1.5" }],
+        sm: ["0.8125rem", { lineHeight: "1.55" }],
+        base: ["0.9375rem", { lineHeight: "1.65" }],
+        lg: ["1.0625rem", { lineHeight: "1.55" }],
+        xl: ["1.25rem", { lineHeight: "1.4" }],
+        "2xl": ["1.5rem", { lineHeight: "1.3" }],
+        "3xl": ["1.875rem", { lineHeight: "1.25" }],
+        "4xl": ["2.25rem", { lineHeight: "1.2" }],
+        "5xl": ["2.75rem", { lineHeight: "1.15" }],
+      },
+      boxShadow: {
+        card: "0 1px 2px 0 hsl(222 47% 11% / 0.06)",
+        lift: "0 2px 8px -2px hsl(222 47% 11% / 0.12)",
+      },
+      // Every transition in the app shares these two curves: `standard` for
+      // state changes, `emphasized` for entrance motion.
+      transitionTimingFunction: {
+        DEFAULT: "cubic-bezier(0.4, 0, 0.2, 1)",
+        standard: "cubic-bezier(0.4, 0, 0.2, 1)",
+        emphasized: "cubic-bezier(0.22, 1, 0.36, 1)",
       },
       keyframes: {
         "accordion-down": {
@@ -58,8 +102,8 @@ const config: Config = {
         },
       },
       animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
+        "accordion-down": "accordion-down 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+        "accordion-up": "accordion-up 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
       },
     },
   },

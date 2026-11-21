@@ -30,7 +30,7 @@ export function SourceCard({ source, index }: SourceCardProps) {
         <div className="mt-2 p-3 bg-muted border rounded-lg text-xs max-w-sm">
           <div className="font-medium mb-1">
             {source.documentTitle}
-            {source.pageNumber && ` — Page ${source.pageNumber}`}
+            {source.pageNumber && `, page ${source.pageNumber}`}
           </div>
           {source.section && (
             <div className="text-primary mb-1 text-xs">{source.section}</div>

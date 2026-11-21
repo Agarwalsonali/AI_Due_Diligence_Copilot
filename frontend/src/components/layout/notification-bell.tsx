@@ -22,9 +22,9 @@ import { NotificationType } from '@/lib/notify';
 import { cn } from '@/lib/utils';
 
 const typeStyles: Record<NotificationType, { icon: typeof Bell; className: string }> = {
-  success: { icon: CheckCircle2, className: 'text-emerald-500 bg-emerald-500/10' },
+  success: { icon: CheckCircle2, className: 'text-success bg-success/10' },
   error: { icon: XCircle, className: 'text-destructive bg-destructive/10' },
-  warning: { icon: AlertTriangle, className: 'text-amber-500 bg-amber-500/10' },
+  warning: { icon: AlertTriangle, className: 'text-warning bg-warning/10' },
   info: { icon: Info, className: 'text-primary bg-primary/10' },
 };
 
@@ -49,7 +49,7 @@ export function NotificationBell() {
         >
           <Bell className="h-4 w-4" />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold flex items-center justify-center">
+            <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold flex items-center justify-center">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
@@ -140,7 +140,7 @@ export function NotificationBell() {
                             {n.description}
                           </span>
                         )}
-                        <span className="block text-[11px] text-muted-foreground/70 mt-1">
+                        <span className="block text-xs text-muted-foreground/70 mt-1">
                           {formatDistanceToNow(new Date(n.createdAt), {
                             addSuffix: true,
                           })}

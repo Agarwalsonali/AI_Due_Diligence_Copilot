@@ -17,16 +17,16 @@ export function OpportunityCard({ opportunity }: { opportunity: OpportunityItem 
     : opportunity.confidence || 0;
 
   return (
-    <Card className="overflow-hidden border-l-4 border-l-emerald-500/50 transition-all hover:shadow-md">
+    <Card className="overflow-hidden border-l-4 border-l-success/50 transition-[transform,border-color] duration-200 ease-standard hover:-translate-y-0.5">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between mb-2">
-          <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-xs flex items-center gap-1">
+          <Badge variant="outline" className="bg-success/10 text-success border-success/20 text-xs flex items-center gap-1">
             <Lightbulb className="w-3 h-3" />
             {opportunity.category}
           </Badge>
         </div>
         <CardTitle className="text-base font-semibold flex items-start gap-2">
-          <TrendingUp className="w-4 h-4 mt-0.5 text-emerald-500 shrink-0" />
+          <TrendingUp className="w-4 h-4 mt-0.5 text-success shrink-0" />
           {opportunity.title}
         </CardTitle>
       </CardHeader>
@@ -38,7 +38,7 @@ export function OpportunityCard({ opportunity }: { opportunity: OpportunityItem 
             <div className="flex justify-between items-center text-xs">
               <span className="text-muted-foreground">Confidence</span>
               <span className={cn(
-                confidence > 70 ? 'text-emerald-500' : confidence > 40 ? 'text-yellow-500' : 'text-orange-500'
+                confidence > 70 ? 'text-success' : confidence > 40 ? 'text-warning' : 'text-destructive'
               )}>
                 {Math.round(confidence)}%
               </span>
@@ -66,7 +66,7 @@ export function OpportunityCard({ opportunity }: { opportunity: OpportunityItem 
                 <span className="font-semibold text-xs">Sources:</span>
                 <div className="flex flex-wrap gap-1.5 mt-1">
                   {opportunity.sources.map((src: SourceCitation, idx: number) => (
-                    <Badge key={idx} variant="secondary" className="text-[10px]">
+                    <Badge key={idx} variant="secondary" className="text-xs">
                       {src.documentTitle || `Doc ${src.documentId}`} p.{src.pageNumber}
                     </Badge>
                   ))}

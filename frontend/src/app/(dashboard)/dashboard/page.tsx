@@ -11,6 +11,7 @@ import { Company, Document } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { formatDate } from '@/lib/utils';
+import { PageHeader } from '@/components/layout/page-header';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -38,7 +39,7 @@ export default function DashboardPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20';
+      case 'completed': return 'bg-success/10 text-success border-success/20';
       case 'failed': return 'bg-destructive/10 text-destructive border-destructive/20';
       case 'processing': return 'bg-primary/10 text-primary border-primary/20';
       default: return 'bg-muted text-muted-foreground border-border';
@@ -47,22 +48,15 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      {/* Welcome Header */}
-      <section className="relative overflow-hidden rounded-xl bg-card border border-border p-6 sm:p-8 shadow-sm">
-        <div className="absolute top-0 right-0 p-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
-        <div className="relative z-10">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2 break-words">
-            Welcome back, {user?.name}
-          </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl">
-            Your AI-powered due diligence workspace is ready. Analyze companies, review financials, and uncover risks.
-          </p>
-        </div>
-      </section>
+      {/* The dashboard uses the same heading block as every other page. */}
+      <PageHeader
+        title={`Welcome back, ${user?.name ?? ''}`}
+        description="Your due diligence workspace is ready. Analyze companies, review financials and track risks from one place."
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <Card className="hover:shadow-md transition-shadow">
+        <Card className="transition-colors hover:border-primary/30">
           <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2 space-y-0">
             <CardTitle className="text-sm font-medium text-muted-foreground">Companies</CardTitle>
             <Building2 className="h-4 w-4 text-muted-foreground" />
@@ -73,7 +67,7 @@ export default function DashboardPage() {
             )}
           </CardContent>
         </Card>
-        <Card className="hover:shadow-md transition-shadow">
+        <Card className="transition-colors hover:border-primary/30">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-sm font-medium text-muted-foreground">Documents</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
@@ -84,7 +78,7 @@ export default function DashboardPage() {
             )}
           </CardContent>
         </Card>
-        <Card className="hover:shadow-md transition-shadow">
+        <Card className="transition-colors hover:border-primary/30">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-sm font-medium text-muted-foreground">Processed</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
@@ -102,9 +96,9 @@ export default function DashboardPage() {
       {/* Quick Actions */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Link href="/companies" className="block group">
-          <Card className="h-full bg-primary/5 hover:bg-primary/10 border-primary/20 transition-colors cursor-pointer">
+          <Card className="h-full cursor-pointer border-primary/20 bg-primary/5 transition-[transform,border-color] duration-200 ease-standard group-hover:-translate-y-0.5 group-hover:border-primary/40">
             <CardContent className="flex flex-col items-center justify-center p-6 text-center h-full space-y-3">
-              <div className="p-3 bg-background rounded-full group-hover:scale-110 transition-transform shadow-sm">
+              <div className="p-3 bg-background rounded-lg border border-border">
                 <Plus className="h-5 w-5 text-primary" />
               </div>
               <div className="font-medium text-sm">Analyze Company</div>
@@ -112,9 +106,9 @@ export default function DashboardPage() {
           </Card>
         </Link>
         <Link href="/documents" className="block group">
-          <Card className="h-full hover:bg-accent transition-colors cursor-pointer">
+          <Card className="h-full cursor-pointer transition-[transform,border-color] duration-200 ease-standard group-hover:-translate-y-0.5 group-hover:border-primary/40">
             <CardContent className="flex flex-col items-center justify-center p-6 text-center h-full space-y-3">
-              <div className="p-3 bg-background rounded-full group-hover:scale-110 transition-transform shadow-sm">
+              <div className="p-3 bg-background rounded-lg border border-border">
                 <FileText className="h-5 w-5 text-muted-foreground" />
               </div>
               <div className="font-medium text-sm">Upload Document</div>
@@ -122,9 +116,9 @@ export default function DashboardPage() {
           </Card>
         </Link>
         <Link href="/compare" className="block group">
-          <Card className="h-full hover:bg-accent transition-colors cursor-pointer">
+          <Card className="h-full cursor-pointer transition-[transform,border-color] duration-200 ease-standard group-hover:-translate-y-0.5 group-hover:border-primary/40">
             <CardContent className="flex flex-col items-center justify-center p-6 text-center h-full space-y-3">
-              <div className="p-3 bg-background rounded-full group-hover:scale-110 transition-transform shadow-sm">
+              <div className="p-3 bg-background rounded-lg border border-border">
                 <Building2 className="h-5 w-5 text-muted-foreground" />
               </div>
               <div className="font-medium text-sm">Compare Companies</div>
@@ -132,9 +126,9 @@ export default function DashboardPage() {
           </Card>
         </Link>
         <Link href="/chat" className="block group">
-          <Card className="h-full hover:bg-accent transition-colors cursor-pointer">
+          <Card className="h-full cursor-pointer transition-[transform,border-color] duration-200 ease-standard group-hover:-translate-y-0.5 group-hover:border-primary/40">
             <CardContent className="flex flex-col items-center justify-center p-6 text-center h-full space-y-3">
-              <div className="p-3 bg-background rounded-full group-hover:scale-110 transition-transform shadow-sm">
+              <div className="p-3 bg-background rounded-lg border border-border">
                 <MessageSquare className="h-5 w-5 text-muted-foreground" />
               </div>
               <div className="font-medium text-sm">AI Research Chat</div>

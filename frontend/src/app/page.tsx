@@ -3,11 +3,11 @@ import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/layout/theme-toggle';
 import {
   TrendingUp, Building2, FileText, MessageSquare, GitCompare,
-  FileBarChart, AlertTriangle, ArrowRight, Sparkles,
+  FileBarChart, AlertTriangle, ArrowRight,
 } from 'lucide-react';
 
 export const metadata = {
-  title: 'DD Copilot — AI-Powered Due Diligence',
+  title: 'DD Copilot | AI-Powered Due Diligence',
   description:
     'Turn annual reports into answers. DD Copilot reads your filings, builds company profiles and answers every question with sources.',
 };
@@ -17,7 +17,7 @@ const features = [
     icon: Building2,
     title: 'Company Profiles',
     description:
-      'Structured profiles for every company you track — tickers, industry, financials and document counts in one place.',
+      'Structured profiles for every company you track: tickers, industry, financials and document counts in one place.',
   },
   {
     icon: FileText,
@@ -29,7 +29,7 @@ const features = [
     icon: MessageSquare,
     title: 'AI Research Chat',
     description:
-      'Ask questions in plain language and get answers grounded in your uploaded documents — with citations to the source.',
+      'Ask questions in plain language and get answers grounded in your uploaded documents, with citations to the source.',
   },
   {
     icon: AlertTriangle,
@@ -58,7 +58,7 @@ const steps = [
   },
   {
     title: 'Upload documents',
-    description: 'Drop in annual reports and filings — we parse and embed them automatically.',
+    description: 'Drop in annual reports and filings. They are parsed and embedded automatically.',
   },
   {
     title: 'Ask & analyze',
@@ -77,7 +77,7 @@ const faqs = [
   },
   {
     q: 'How do I know I can trust the answers?',
-    a: 'Every response from the AI Research Chat is grounded in your own uploaded documents and comes with citations to the source passages — not generic model output.',
+    a: 'Every response from the AI Research Chat is grounded in your own uploaded documents and comes with citations to the source passages, not generic model output.',
   },
   {
     q: 'How many companies can I compare?',
@@ -89,7 +89,7 @@ const faqs = [
   },
   {
     q: 'How do I get started?',
-    a: 'Create an account, add your first company and upload a report — you can be asking questions within minutes.',
+    a: 'Create an account, add your first company and upload a report. You can be asking questions within minutes.',
   },
 ];
 
@@ -134,22 +134,20 @@ export default function LandingPage() {
       </header>
 
       {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="absolute top-0 left-1/2 h-[480px] w-[720px] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
-        <div className="relative mx-auto max-w-6xl px-4 sm:px-6 pt-16 pb-20 sm:pt-24 sm:pb-28">
-          <div className="grid items-center gap-12 lg:grid-cols-2">
+      <section className="relative">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-16 pb-20 sm:pt-20 sm:pb-24">
+          <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-12">
             <div className="landing-hero-copy text-center lg:text-left">
-              <div className="landing-reveal landing-reveal-delay-1 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary mb-6">
-                <Sparkles className="h-3.5 w-3.5" />
+              <div className="landing-reveal landing-reveal-delay-1 inline-flex items-center rounded-full border border-border bg-muted/50 px-3 py-1 text-xs font-medium text-muted-foreground mb-6">
                 AI-powered due diligence workspace
               </div>
-              <h1 className="landing-reveal landing-reveal-delay-2 text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
+              <h1 className="landing-reveal landing-reveal-delay-2 text-4xl sm:text-5xl font-semibold tracking-tight">
                 Turn annual reports into <span className="text-primary">answers</span>
               </h1>
-              <p className="landing-reveal landing-reveal-delay-3 mt-5 text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0">
+              <p className="landing-reveal landing-reveal-delay-3 mt-4 text-base sm:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0">
                 DD Copilot reads your filings, builds company profiles and answers every
-                question with sources — so you can find risks and opportunities in hours,
-                not weeks.
+                question with citations to the source, so you can find risks and
+                opportunities in hours instead of weeks.
               </p>
               <div className="landing-reveal landing-reveal-delay-4 mt-8 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
                 <Button asChild size="lg">
@@ -164,25 +162,8 @@ export default function LandingPage() {
             </div>
 
             {/* Product mock */}
-            <div className="landing-3d-stage">
-              <div className="landing-orbit landing-orbit-left" aria-hidden="true">
-                <div className="landing-orbit-card landing-orbit-card-blue">
-                  <TrendingUp className="h-4 w-4" />
-                  <span>+24.8% growth</span>
-                </div>
-              </div>
-              <div className="landing-orbit landing-orbit-right" aria-hidden="true">
-                <div className="landing-orbit-card landing-orbit-card-dark">
-                  <span className="landing-status-dot" />
-                  <span>AI analysis live</span>
-                </div>
-              </div>
-              <div className="landing-core" aria-hidden="true">
-                <div className="landing-core-ring landing-core-ring-one" />
-                <div className="landing-core-ring landing-core-ring-two" />
-                <div className="landing-core-dot" />
-              </div>
-              <div className="landing-product-preview rounded-2xl border border-border bg-card shadow-2xl p-4 sm:p-6 space-y-4">
+            <div>
+              <div className="landing-product-preview rounded-lg border border-border bg-card shadow-card p-4 sm:p-6 space-y-4">
                 <div className="grid grid-cols-3 gap-3">
                   {[
                     { label: 'Companies', value: '12' },
@@ -241,7 +222,7 @@ export default function LandingPage() {
       <section className="border-y border-border bg-card/50">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10 grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
           {[
-            { value: '5', label: 'Analysis engines — risk, health, opportunities, summary & comparison' },
+            { value: '5', label: 'Analysis engines: risk, health, opportunities, summary and comparison' },
             { value: '2–4', label: 'Companies compared side by side' },
             { value: 'PDF', label: 'Reports you can export and share' },
             { value: '100%', label: 'Answers grounded in your own documents' },
@@ -257,16 +238,16 @@ export default function LandingPage() {
       {/* Features */}
       <section id="features" className="mx-auto max-w-6xl px-4 sm:px-6 py-16 sm:py-24 scroll-mt-20">
         <div className="landing-reveal max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight">
             Everything you need to diligence a company
           </h2>
           <p className="mt-4 text-muted-foreground text-lg">
-            From raw filings to a finished report — one workspace for the whole workflow.
+            From raw filings to a finished report, in one workspace.
           </p>
         </div>
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((f, i) => (
-            <div key={f.title} className={`landing-reveal landing-reveal-delay-${(i % 4) + 1} rounded-xl border border-border bg-card p-6 hover:border-primary/30 hover:shadow-md transition-all`}>
+            <div key={f.title} className={`landing-reveal landing-reveal-delay-${(i % 4) + 1} rounded-lg border border-border bg-card p-6 transition-[transform,border-color] duration-200 ease-standard hover:-translate-y-0.5 hover:border-primary/40`}>
               <div className="p-2.5 w-fit rounded-lg bg-primary/10 border border-primary/20 mb-4">
                 <f.icon className="h-5 w-5 text-primary" />
               </div>
@@ -281,7 +262,7 @@ export default function LandingPage() {
       <section id="how-it-works" className="border-y border-border bg-card/50 scroll-mt-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 py-16 sm:py-24">
           <div className="landing-reveal max-w-2xl mx-auto text-center">
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">How it works</h2>
+            <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight">How it works</h2>
             <p className="mt-4 text-muted-foreground text-lg">
               Four steps from an empty workspace to a finished report.
             </p>
@@ -303,11 +284,11 @@ export default function LandingPage() {
       {/* FAQ */}
       <section id="faq" className="mx-auto max-w-3xl px-4 sm:px-6 py-16 sm:py-24 scroll-mt-20">
         <div className="landing-reveal text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Frequently asked questions</h2>
+          <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight">Frequently asked questions</h2>
         </div>
         <div className="mt-10 space-y-3">
           {faqs.map((item, i) => (
-            <details key={item.q} className={`landing-reveal landing-reveal-delay-${(i % 4) + 1} group rounded-xl border border-border bg-card px-5 py-4 [&_summary::-webkit-details-marker]:hidden`}>
+            <details key={item.q} className={`landing-reveal landing-reveal-delay-${(i % 4) + 1} group rounded-lg border border-border bg-card px-5 py-4 [&_summary::-webkit-details-marker]:hidden`}>
               <summary className="flex cursor-pointer items-center justify-between gap-4 font-medium text-sm sm:text-base">
                 {item.q}
                 <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" />
@@ -320,11 +301,11 @@ export default function LandingPage() {
 
       {/* CTA */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6 pb-16 sm:pb-24">
-        <div className="landing-reveal rounded-2xl border border-primary/20 bg-primary/10 px-6 py-12 sm:px-12 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Ready to start your due diligence?</h2>
+        <div className="landing-reveal rounded-lg border border-border bg-muted/30 px-6 py-12 sm:px-12 text-center">
+          <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight">Ready to start your due diligence?</h2>
           <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
-            Create a workspace, add your first company and see what your filings have been
-            trying to tell you.
+            Create a workspace, add your first company and upload a filing. You will be
+            asking questions about it a minute later.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
             <Button asChild size="lg">

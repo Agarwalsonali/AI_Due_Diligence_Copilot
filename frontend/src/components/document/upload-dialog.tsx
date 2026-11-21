@@ -128,7 +128,7 @@ export function UploadDialog({ companyId, onSuccess }: UploadDialogProps) {
         </DialogHeader>
 
         <div className="mt-4 space-y-4">
-          {/* Company picker — only when the dialog isn't already scoped to a company */}
+          {/* Company picker: only shown when the dialog isn't already scoped to a company */}
           {!companyId && (
             <div className="space-y-1">
               <Label>Company</Label>
@@ -142,7 +142,7 @@ export function UploadDialog({ companyId, onSuccess }: UploadDialogProps) {
               </Select>
               {companies.length === 0 && (
                 <p className="text-xs text-muted-foreground">
-                  No companies yet — add one from the Companies page first.
+                  No companies yet. Add one from the Companies page first.
                 </p>
               )}
             </div>
@@ -151,7 +151,7 @@ export function UploadDialog({ companyId, onSuccess }: UploadDialogProps) {
           {/* Drop zone */}
           {!file ? (
             <div
-              className="border-2 border-dashed rounded-xl p-6 sm:p-10 text-center hover:bg-muted/50 hover:border-primary/50 transition-colors cursor-pointer"
+              className="cursor-pointer rounded-lg border-2 border-dashed p-6 text-center transition-colors duration-200 ease-standard hover:border-primary/50 hover:bg-muted/50 sm:p-10"
               onDragOver={e => e.preventDefault()}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}

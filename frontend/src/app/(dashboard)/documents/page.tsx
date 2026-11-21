@@ -9,11 +9,11 @@ import { toast } from 'sonner';
 import { FileText } from 'lucide-react';
 import { DocumentList } from '@/components/document/document-list';
 import { UploadDialog } from '@/components/document/upload-dialog';
+import { PageHeader } from '@/components/layout/page-header';
 
 export default function DocumentsPage() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<string>('all');
-  const [loading, setLoading] = useState(true);
   const [refreshToken, setRefreshToken] = useState(0);
 
   useEffect(() => {
@@ -23,8 +23,6 @@ export default function DocumentsPage() {
         setCompanies(Array.isArray(data) ? data : []);
       } catch (e) {
         toast.error('Failed to load companies');
-      } finally {
-        setLoading(false);
       }
     };
     fetchCompanies();
@@ -32,12 +30,11 @@ export default function DocumentsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Documents</h1>
-          <p className="text-muted-foreground mt-1">Manage uploaded documents across all companies</p>
-        </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+      <PageHeader
+        title="Documents"
+        description="Manage uploaded documents across all companies"
+        actions={
+          <>
           <Select value={selectedCompany} onValueChange={setSelectedCompany}>
             <SelectTrigger className="w-full sm:w-48">
               <SelectValue placeholder="All Companies" />
@@ -57,8 +54,9 @@ export default function DocumentsPage() {
             companyId={selectedCompany === 'all' ? undefined : selectedCompany}
             onSuccess={() => setRefreshToken(t => t + 1)}
           />
-        </div>
-      </div>
+          </>
+        }
+      />
 
       <Card>
         <CardHeader>
